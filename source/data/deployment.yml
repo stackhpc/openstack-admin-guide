@@ -1,0 +1,9 @@
+---
+# Whether the OpenStack deployment uses Ceph for storage
+ceph: true
+
+# Whether the Ceph deployment is done via Ceph-Ansible
+ceph_ansible: false
+
+# Whether the Ceph deployment is managed by StackHPC
+ceph_managed: false

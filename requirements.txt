@@ -1,0 +1,3 @@
+PyYAML
+Sphinx
+Sphinx-Substitution-Extensions
