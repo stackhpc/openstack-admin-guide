@@ -270,8 +270,120 @@ Configuring Monasca Alerts
 Generating Metrics from Specific Log Messages
 +++++++++++++++++++++++++++++++++++++++++++++
 
+If you wish to generate alerts for specific log messages, you must first
+generate metrics from those log messages. Metrics are generated from the
+transformed logs queue in Kafka. The Monasca log metrics service reads log
+messages from this queue, transforms them into metrics and then writes them to
+the metrics queue.
+
+The rules which govern this transformation are defined in the logstash config
+file. This file can be configured via kayobe. To do this, edit
+``etc/kayobe/kolla/config/monasca/log-metrics.conf``, for example:
+
+.. code-block:: text
+
+   # Create events from specific log signatures
+   filter {
+     if "Another thread already created a resource provider" in [log][message] {
+       mutate {
+         add_field => { "[log][dimensions][event]" => "hat" }
+       }
+     } else if "My string here" in [log][message] {
+       mutate {
+         add_field => { "[log][dimensions][event]" => "my_new_alert" }
+       }
+    }
+
+Reconfigure Monasca:
+
+.. code-block:: text
+
+   kayobe# kayobe overcloud service reconfigure --kolla-tags monasca
+
+Verify that logstash doesn't complain about your modification. On each node
+running the ``monasca-log-metrics`` service, the logs can be inspected in the
+Kolla logs directory, under the ``logstash`` folder:
+``/var/log/kolla/logstash``.
+
+Metrics will now be generated from the configured log messages. To generate
+alerts/notifications from your new metric, follow the next section.
+
 Generating Monasca Alerts from Metrics
 ++++++++++++++++++++++++++++++++++++++
+
+Firstly, we will configure alarms and notifications. This should be done via
+the Monasca client. More detailed documentation is available in the `Monasca
+API specification
+<https://github.com/openstack/monasca-api/blob/master/docs/monasca-api-spec.md#alarm-definitions-and-alarms>`__.
+This document provides an overview of common use-cases.
+
+To create a Slack notification, first obtain the URL for the notification hook
+from Slack, and configure the notification as follows:
+
+.. code-block:: console
+
+   monasca# monasca notification-create stackhpc_slack SLACK https://hooks.slack.com/services/UUID
+
+You can view notifications at any time by invoking:
+
+.. code-block:: console
+
+   monasca# monasca notification-list
+
+To create an alarm with an associated notification:
+
+.. code-block:: console
+
+   monasca# monasca alarm-definition-create multiple_nova_compute \
+            '(count(log.event.multiple_nova_compute{}, deterministic)>0)' \
+            --description "Multiple nova compute instances detected" \
+            --severity HIGH --alarm-actions $NOTIFICATION_ID
+
+By default one alarm will be created for all hosts. This is typically useful
+when you are looking at the overall state of some hosts. For example in the
+screenshot below the ``db_mon_log_high_mem_usage`` alarm has previously
+triggered on a number of hosts, but is currently below threshold.
+
+If you wish to have an alarm created per host you can use the ``--match-by``
+option and specify the hostname dimension. For example:
+
+.. code-block:: console
+
+   monasca# monasca alarm-definition-create multiple_nova_compute \
+            '(count(log.event.multiple_nova_compute{}, deterministic)>0)' \
+            --description "Multiple nova compute instances detected" \
+            --severity HIGH --alarm-actions $NOTIFICATION_ID
+            --match-by hostname
+
+Creating an alarm per host can be useful when alerting on one off events such
+as log messages which need to be actioned individually. Once the issue has been
+investigated and fixed, the alarm can be deleted on a per host basis.
+
+For example, in the case of monitoring for file system corruption one might
+define a metric from the system logs alerting on XFS file system corruption, or
+ECC memory errors. These metrics may only be generated once, but it is
+important that they are not ignored. Therefore, in the example below, the last
+operator is used so that the alarm is evaluated against the last metric
+associated with the log message. Since for log metrics the value of this metric
+is always greater than 0, this alarm can only be reset by deleting it (which
+can be accomplished by clicking on the dustbin icon in Monasca Grafana). By
+ensuring that the alarm has to be manually deleted and will not reset to the OK
+status, important errors can be tracked.
+
+.. code-block:: console
+
+   monasca# monasca alarm-definition-create xfs_errors \
+            '(last(log.event.xfs_errors_detected{}, deterministic)>0)' \
+            --description "XFS errors detected on host" \
+            --severity HIGH --alarm-actions $NOTIFICATION_ID \
+            --match-by hostname
+
+It is also possible to update existing alarms. For example, to update, or add
+multiple notifications to an alarm:
+
+.. code-block:: console
+
+   monasca# monasca alarm-definition-patch $ALARM_ID --alarm-actions $NOTIFICATION_ID --alarm-actions $NOTIFICATION_ID_2
 
 Control Plane Shutdown Procedure
 ================================

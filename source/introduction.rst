@@ -59,6 +59,12 @@ A command that must be run within the Bifrost service container, hosted on the s
 
 A command that can be run (as superuser) from a running compute instance.
 
+``monasca#``
+
+A command that must be run with OpenStack control plane admin credentials
+loaded, and the Monasca client and supporting modules available (whether in a
+virtualenv or installed in the OS libraries).
+
 Glossary of Terms
 -----------------
 
