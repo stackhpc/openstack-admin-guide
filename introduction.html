@@ -1,0 +1,259 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Introduction &#8212; OpenStack Administration Guide  documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Working with OpenStack" href="working_with_openstack.html" />
+    <link rel="prev" title="Acme OpenStack Administration Guide" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="introduction">
+<h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
+<p>This is an administration guide detailing run-book procedures for common
+administration actions. The administration guide is expected to be augmented
+over time as Acme’s admin procedures evolve.</p>
+<div class="section" id="project-name-openstack-reference-architecture">
+<h2>Acme OpenStack Reference Architecture<a class="headerlink" href="#project-name-openstack-reference-architecture" title="Permalink to this headline">¶</a></h2>
+<p>For further details on the architecture of the OpenStack deployment, consult
+the Acme OpenStack Reference Architecture on Google Drive:
+<a class="reference external" href="https://docs.google.com/document/u/0/?tgif=d">https://docs.google.com/document/u/0/?tgif=d</a></p>
+</div>
+<div class="section" id="document-conventions">
+<h2>Document Conventions<a class="headerlink" href="#document-conventions" title="Permalink to this headline">¶</a></h2>
+<p>There are various places where administrative commands of different types can
+be run. Where an example is given, the command prompt is set to indicate the
+appropriate environment.</p>
+<p><code class="docutils literal notranslate"><span class="pre">openstack#</span></code></p>
+<p>A command that can be run as any OpenStack user with an environment configured
+for OpenStack CLI access. This may involve installing client packages on the
+system, or using a virtualenv. The user’s OpenStack credentials are also
+sourced.</p>
+<p>This machine must be able to reach the OpenStack public API (for example
+<a class="reference external" href="https://openstack.acme.example:5000">https://openstack.acme.example:5000</a>).</p>
+<p><code class="docutils literal notranslate"><span class="pre">admin#</span></code></p>
+<p>A command that must be run with OpenStack control plane admin credentials
+loaded, and the OpenStack client and supporting modules available (whether in a
+virtualenv or installed in the OS libraries).</p>
+<p>This machine must be able to reach the OpenStack public API.</p>
+<p><code class="docutils literal notranslate"><span class="pre">kayobe#</span></code></p>
+<p>A command that must be run in an environment configured for Kayobe. This
+typically is a virtualenv created along with the Kayobe repo, and environment
+variables conventionally drawn from <code class="docutils literal notranslate"><span class="pre">kayobe-config/kayobe-env</span></code>. The
+<code class="docutils literal notranslate"><span class="pre">KAYOBE_VAULT_PASSWORD</span></code> environment variable may also need to be set.</p>
+<p><code class="docutils literal notranslate"><span class="pre">seed#</span></code></p>
+<p>A command that must be run on the seed VM.</p>
+<p><code class="docutils literal notranslate"><span class="pre">bifrost#</span></code></p>
+<p>A command that must be run within the Bifrost service container, hosted on the seed VM.</p>
+<p><code class="docutils literal notranslate"><span class="pre">instance#</span></code></p>
+<p>A command that can be run (as superuser) from a running compute instance.</p>
+<p><code class="docutils literal notranslate"><span class="pre">monasca#</span></code></p>
+<p>A command that must be run with OpenStack control plane admin credentials
+loaded, and the Monasca client and supporting modules available (whether in a
+virtualenv or installed in the OS libraries).</p>
+</div>
+<div class="section" id="glossary-of-terms">
+<h2>Glossary of Terms<a class="headerlink" href="#glossary-of-terms" title="Permalink to this headline">¶</a></h2>
+<dl class="glossary simple">
+<dt id="term-Cinder">Cinder</dt><dd><p>OpenStack’s block-based storage service. Cinder implements volumes, which
+are persistent data storage that appears in VMs as block devices.
+<a class="reference external" href="https://docs.openstack.org/cinder/latest/">https://docs.openstack.org/cinder/latest/</a></p>
+</dd>
+<dt id="term-ECMP">ECMP</dt><dd><p>Equal-Cost Multi-Path routing - a IP-based protocol for enabling traffic
+between two destinations across multiple paths in the network fabric.</p>
+</dd>
+<dt id="term-Floating-IP">Floating IP</dt><dd><p>An external IP address that is associated with a VM (although the VM is
+not aware of it). A floating IP enables in-bound access to a VM that is
+on a private network with a router connecting it to the external network.
+VMs on a private network can initiate external network access without a
+floating IP.</p>
+</dd>
+<dt id="term-Glance">Glance</dt><dd><p>OpenStack’s image service. Glance manages software images for compute
+instances. <a class="reference external" href="https://docs.openstack.org/glance/latest/">https://docs.openstack.org/glance/latest/</a></p>
+</dd>
+<dt id="term-GRE">GRE</dt><dd><p>Generic Routing Encapsulation - A common tunneling protocol for
+transmission of data in a segmented network.</p>
+</dd>
+<dt id="term-HA">HA</dt><dd><p>High Availability - The ability for a system to continue to provide
+service in the presence of hardware or software component failure.</p>
+</dd>
+<dt id="term-HAProxy">HAProxy</dt><dd><p>A load-balancer for TCP connections that maintains a VIP and acts as a
+single endpoint for multiple instances of OpenStack API services.
+<a class="reference external" href="http://www.haproxy.org/">http://www.haproxy.org/</a></p>
+</dd>
+<dt id="term-Horizon">Horizon</dt><dd><p>OpenStack’s web user interface.
+<a class="reference external" href="https://docs.openstack.org/horizon/latest/">https://docs.openstack.org/horizon/latest/</a></p>
+</dd>
+<dt id="term-IPMI">IPMI</dt><dd><p>Intelligent Platform Management Interface - Interface for providing
+remote control and monitoring of a server’s baseboard components.</p>
+</dd>
+<dt id="term-Kayobe">Kayobe</dt><dd><p>An Ansible-driven OpenStack deployment framework capable of taking bare
+metal infrastructure through to post-deployment customization.</p>
+</dd>
+<dt id="term-Keystone">Keystone</dt><dd><p>OpenStack’s authentication, authorization and identity management
+service. All other OpenStack services authenticate user requests by
+validating cryptographic tokens passed by the requester.
+<a class="reference external" href="https://docs.openstack.org/keystone/latest/">https://docs.openstack.org/keystone/latest/</a></p>
+</dd>
+<dt id="term-Kolla">Kolla</dt><dd><p>An OpenStack project for encapsulating all OpenStack services in Docker
+containers. <a class="reference external" href="https://docs.openstack.org/kolla/latest/">https://docs.openstack.org/kolla/latest/</a></p>
+</dd>
+<dt id="term-MLAG">MLAG</dt><dd><p>Multi-Chassis Link Aggregate - a method of providing multi-pathing and
+multi-switch redundancy in layer-2 networks.</p>
+</dd>
+<dt id="term-Monasca">Monasca</dt><dd><p>OpenStack’s monitoring service (“Monitoring as a Service at Scale”).
+Logging, telemetry and events from the infrastructure, control plane and
+user projects can be submitted and processed by Monasca.
+<a class="reference external" href="https://docs.openstack.org/monasca-api/latest/">https://docs.openstack.org/monasca-api/latest/</a></p>
+</dd>
+<dt id="term-Neutron">Neutron</dt><dd><p>OpenStack’s networking service.
+<a class="reference external" href="https://docs.openstack.org/neutron/latest/">https://docs.openstack.org/neutron/latest/</a></p>
+</dd>
+<dt id="term-Nova">Nova</dt><dd><p>OpenStack’s compute service. Nova is the scheduler for VMs in OpenStack
+and the manager of the compute hypervisors.
+<a class="reference external" href="https://docs.openstack.org/nova/latest/">https://docs.openstack.org/nova/latest/</a></p>
+</dd>
+<dt id="term-OIDC">OIDC</dt><dd><p>OpenID Connect - a protocol for federated authentication and identity
+management.</p>
+</dd>
+<dt id="term-OSPF">OSPF</dt><dd><p>Open Shortest Path First - a routing protocol for IPv4 and IPv6 for
+managing efficient paths between IP routers. OSPF is used in conjunction
+with ECMP to maintain multi-path route tables across an IP fabric.</p>
+</dd>
+<dt id="term-REST">REST</dt><dd><p>Representational State Transfer - a software paradigm in which no state
+is carried between successive API calls. This stateless model enables
+successive API requests to be serviced by different processes, and
+simplifies the process of scaling OpenStack control plane services.</p>
+</dd>
+<dt id="term-SDN">SDN</dt><dd><p>Software Defined Networking - Technology that facilitates the
+programmatic control of network configuration and monitoring.</p>
+</dd>
+<dt id="term-VIP">VIP</dt><dd><p>Virtual IP address - a method for implementing active-passive failover in
+which multiple services on different nodes share a common IP which can be
+transferred between them in the event of failover.</p>
+</dd>
+<dt id="term-VXLAN">VXLAN</dt><dd><p>Virtual eXtensible LAN - a tunneling protocol used for tenant overlay
+networks. VXLAN is more portable and imposes fewer networking
+requirements than VLAN-based overlay networks. However, VXLAN can also
+incur more overhead and may not be usable for RDMA-enabled compute VMs.</p>
+</dd>
+<dt id="term-XMPP">XMPP</dt><dd><p>Extensible Messaging and Presence Protocol - Used for the exchange of
+XML-based structured data between network entities.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="contacting-stackhpc-support">
+<h2>Contacting StackHPC Support<a class="headerlink" href="#contacting-stackhpc-support" title="Permalink to this headline">¶</a></h2>
+<p>StackHPC’s technical team is available for standard support for OpenStack issues
+related to the Acme OpenStack deployment. StackHPC support can be
+contacted through the dedicated Slack channel or by direct email contact at
+<a class="reference external" href="mailto:acme-support&#37;&#52;&#48;stackhpc&#46;com">acme-support<span>&#64;</span>stackhpc<span>&#46;</span>com</a>.</p>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">OpenStack Administration Guide</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#project-name-openstack-reference-architecture">Acme OpenStack Reference Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#document-conventions">Document Conventions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#glossary-of-terms">Glossary of Terms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#contacting-stackhpc-support">Contacting StackHPC Support</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="working_with_openstack.html">Working with OpenStack</a></li>
+<li class="toctree-l1"><a class="reference internal" href="working_with_kayobe.html">Working with Kayobe</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hardware_inventory_management.html">Hardware Inventory Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ceph_storage.html">Ceph Storage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="managing_users_and_projects.html">Managing Users and Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="operations_and_monitoring.html">Operations and Monitoring</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Acme OpenStack Administration Guide</a></li>
+      <li>Next: <a href="working_with_openstack.html" title="next chapter">Working with OpenStack</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, StackHPC Ltd.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/introduction.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

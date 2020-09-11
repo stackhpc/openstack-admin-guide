@@ -1,0 +1,239 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hardware Inventory Management &#8212; OpenStack Administration Guide  documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Ceph Storage" href="ceph_storage.html" />
+    <link rel="prev" title="Working with Kayobe" href="working_with_kayobe.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="hardware-inventory-management">
+<h1>Hardware Inventory Management<a class="headerlink" href="#hardware-inventory-management" title="Permalink to this headline">¶</a></h1>
+<p>At its lowest level, hardware inventory is managed in the Bifrost service (see <a class="reference internal" href="working_with_kayobe.html#accessing-the-bifrost-service"><span class="std std-ref">Accessing the Bifrost Service</span></a>).</p>
+<div class="section" id="reconfiguring-control-plane-hardware">
+<h2>Reconfiguring Control Plane Hardware<a class="headerlink" href="#reconfiguring-control-plane-hardware" title="Permalink to this headline">¶</a></h2>
+<p>If a server’s hardware or firmware configuration is changed, it should be
+re-inspected in Bifrost before it is redeployed into service. A single server
+can be reinspected like this (for a host named <code class="docutils literal notranslate"><span class="pre">comp0</span></code>):</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">kayobe# kayobe overcloud hardware inspect --limit comp0</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="enrolling-new-hypervisors">
+<span id="id1"></span><h2>Enrolling New Hypervisors<a class="headerlink" href="#enrolling-new-hypervisors" title="Permalink to this headline">¶</a></h2>
+<p>New hypervisors can be added to the Bifrost inventory by using its discovery
+capabilities. Assuming that new hypervisors have IPMI enabled and are
+configured to network boot on the provisioning network, the following commands
+will instruct them to PXE boot. The nodes will boot on the Ironic Python Agent
+kernel and ramdisk, which is configured to extract hardware information and
+send it to Bifrost. Note that IPMI credentials can be found in the encrypted
+file located at <code class="docutils literal notranslate"><span class="pre">${KAYOBE_CONFIG_PATH}/secrets.yml</span></code>.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">bifrost# ipmitool -I lanplus -U admin -H comp0-ipmi chassis bootdev pxe</span>
+</pre></div>
+</div>
+<p>If node is are off, power them on:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">bifrost# ipmitool -I lanplus -U admin -H comp0-ipmi power on</span>
+</pre></div>
+</div>
+<p>If nodes is on, reset them:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">bifrost# ipmitool -I lanplus -U admin -H comp0-ipmi power reset</span>
+</pre></div>
+</div>
+<p>Once node have booted and have completed introspection, they should be visible
+in Bifrost:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">bifrost-7.2.1]# openstack baremetal node list --provision-state enroll</span>
+<span class="go">+--------------------------------------+-----------------------+---------------+-------------+--------------------+-------------+</span>
+<span class="go">| UUID                                 | Name                  | Instance UUID | Power State | Provisioning State | Maintenance |</span>
+<span class="go">+--------------------------------------+-----------------------+---------------+-------------+--------------------+-------------+</span>
+<span class="go">| da0c61af-b411-41b9-8909-df2509f2059b | comp0 | None          | power off   | enroll             | False       |</span>
+<span class="go">+--------------------------------------+-----------------------+---------------+-------------+--------------------+-------------+</span>
+</pre></div>
+</div>
+<p>After editing <code class="docutils literal notranslate"><span class="pre">${KAYOBE_CONFIG_PATH}/overcloud.yml</span></code> to add these new hosts to
+the correct groups, import them in Kayobe’s inventory with:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">kayobe# kayobe overcloud inventory discover</span>
+</pre></div>
+</div>
+<p>We can then provision and configure them:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">kayobe# kayobe overcloud provision --limit comp0</span>
+<span class="go">kayobe# kayobe overcloud host configure --limit comp0 --kolla-limit comp0</span>
+<span class="go">kayobe# kayobe overcloud service deploy --limit comp0 --kolla-limit comp0</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="replacing-a-failing-hypervisor">
+<h2>Replacing a Failing Hypervisor<a class="headerlink" href="#replacing-a-failing-hypervisor" title="Permalink to this headline">¶</a></h2>
+<p>To replace a failing hypervisor, proceed as follows:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="operations_and_monitoring.html#taking-a-hypervisor-out-of-service"><span class="std std-ref">Disable the hypervisor to avoid scheduling any new instance on it</span></a></p></li>
+<li><p><a class="reference internal" href="#evacuating-all-instances"><span class="std std-ref">Evacuate all instances</span></a></p></li>
+<li><p><a class="reference internal" href="#set-bifrost-maintenance-mode"><span class="std std-ref">Set the node to maintenance mode in Bifrost</span></a></p></li>
+<li><p>Physically fix or replace the node</p></li>
+<li><p>It may be necessary to reinspect the node if hardware was changed (this will require deprovisioning and reprovisioning)</p></li>
+<li><p>If the node was replaced or reprovisioned, follow <a class="reference internal" href="#enrolling-new-hypervisors"><span class="std std-ref">Enrolling New Hypervisors</span></a></p></li>
+</ul>
+</div>
+<div class="section" id="evacuating-all-instances">
+<span id="id2"></span><h2>Evacuating all instances<a class="headerlink" href="#evacuating-all-instances" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">admin# nova host-evacuate-live comp0</span>
+</pre></div>
+</div>
+<p>You should now check the status of all the instances that were running on that
+hypervisor. They should all show the status RUNNING. This can be verified with:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">admin# openstack server show &lt;instance uuid&gt;</span>
+</pre></div>
+</div>
+<div class="section" id="troubleshooting">
+<h3>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="servers-that-have-been-shut-down">
+<h4>Servers that have been shut down<a class="headerlink" href="#servers-that-have-been-shut-down" title="Permalink to this headline">¶</a></h4>
+<p>If there are any instances that are SHUTOFF they won’t be migrated, but you can
+use <code class="docutils literal notranslate"><span class="pre">nova</span> <span class="pre">host-servers-migrate</span></code> for them once the live migration is finished.</p>
+<p>Also if a VM does heavy memory access, it may take ages to migrate (Nova tries
+to incrementally increase the expected downtime, but is quite conservative).
+You can use <code class="docutils literal notranslate"><span class="pre">nova</span> <span class="pre">live-migration-force-complete</span> <span class="pre">&lt;instance_uuid&gt;</span>
+<span class="pre">&lt;migration_id&gt;</span></code> to trigger the final move.</p>
+<p>You get the migration ID via <code class="docutils literal notranslate"><span class="pre">nova</span> <span class="pre">server-migration-list</span> <span class="pre">&lt;instance_uuid&gt;</span></code>.</p>
+<p>For more details see:
+<a class="reference external" href="http://www.danplanet.com/blog/2016/03/03/evacuate-in-nova-one-command-to-confuse-us-all/">http://www.danplanet.com/blog/2016/03/03/evacuate-in-nova-one-command-to-confuse-us-all/</a></p>
+</div>
+<div class="section" id="flavors-have-changed">
+<h4>Flavors have changed<a class="headerlink" href="#flavors-have-changed" title="Permalink to this headline">¶</a></h4>
+<p>If the size of the flavors has changed, some instances will also fail to
+migrate as the process needs manual confirmation. You can do this with:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">openstack # openstack server resize confirm &lt;instance-uuid&gt;</span>
+</pre></div>
+</div>
+<p>The symptom to look out for is that the server is showing a status of <code class="docutils literal notranslate"><span class="pre">VERIFY</span>
+<span class="pre">RESIZE</span></code> as shown in this snippet of <code class="docutils literal notranslate"><span class="pre">openstack</span> <span class="pre">server</span> <span class="pre">show</span> <span class="pre">&lt;instance-uuid&gt;</span></code>:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">| status | VERIFY_RESIZE |</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="set-maintenance-mode-on-a-node-in-bifrost">
+<span id="set-bifrost-maintenance-mode"></span><h3>Set maintenance mode on a node in Bifrost<a class="headerlink" href="#set-maintenance-mode-on-a-node-in-bifrost" title="Permalink to this headline">¶</a></h3>
+<p>For example, to put <code class="docutils literal notranslate"><span class="pre">comp0</span></code> into maintenance:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">seed# sudo docker exec -it bifrost_deploy /bin/bash</span>
+<span class="gp gp-VirtualEnv">(bifrost-deploy)</span><span class="gp">[root@seed bifrost-base]#</span> <span class="nv">OS_CLOUD</span><span class="o">=</span>bifrost openstack baremetal node maintenance <span class="nb">set</span> comp0
+</pre></div>
+</div>
+</div>
+<div class="section" id="unset-maintenance-mode-on-a-node-in-bifrost">
+<span id="unset-bifrost-maintenance-mode"></span><h3>Unset maintenance mode on a node in Bifrost<a class="headerlink" href="#unset-maintenance-mode-on-a-node-in-bifrost" title="Permalink to this headline">¶</a></h3>
+<p>For example, to take <code class="docutils literal notranslate"><span class="pre">comp0</span></code> out of maintenance:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">seed# sudo docker exec -it bifrost_deploy /bin/bash</span>
+<span class="gp gp-VirtualEnv">(bifrost-deploy)</span><span class="gp">[root@seed bifrost-base]#</span> <span class="nv">OS_CLOUD</span><span class="o">=</span>bifrost openstack baremetal node maintenance <span class="nb">unset</span> comp0
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">OpenStack Administration Guide</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="working_with_openstack.html">Working with OpenStack</a></li>
+<li class="toctree-l1"><a class="reference internal" href="working_with_kayobe.html">Working with Kayobe</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Hardware Inventory Management</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#reconfiguring-control-plane-hardware">Reconfiguring Control Plane Hardware</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#enrolling-new-hypervisors">Enrolling New Hypervisors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#replacing-a-failing-hypervisor">Replacing a Failing Hypervisor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#evacuating-all-instances">Evacuating all instances</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ceph_storage.html">Ceph Storage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="managing_users_and_projects.html">Managing Users and Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="operations_and_monitoring.html">Operations and Monitoring</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="working_with_kayobe.html" title="previous chapter">Working with Kayobe</a></li>
+      <li>Next: <a href="ceph_storage.html" title="next chapter">Ceph Storage</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, StackHPC Ltd.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/hardware_inventory_management.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

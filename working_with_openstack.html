@@ -1,0 +1,157 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Working with OpenStack &#8212; OpenStack Administration Guide  documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Working with Kayobe" href="working_with_kayobe.html" />
+    <link rel="prev" title="Introduction" href="introduction.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="working-with-openstack">
+<h1>Working with OpenStack<a class="headerlink" href="#working-with-openstack" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="accessing-the-dashboard-horizon">
+<h2>Accessing the Dashboard (Horizon)<a class="headerlink" href="#accessing-the-dashboard-horizon" title="Permalink to this headline">¶</a></h2>
+<p>The OpenStack web UI is available at: <a class="reference external" href="https://openstack.acme.example">https://openstack.acme.example</a></p>
+<p>This site is accessible via the Internet..</p>
+</div>
+<div class="section" id="accessing-the-openstack-cli">
+<h2>Accessing the OpenStack CLI<a class="headerlink" href="#accessing-the-openstack-cli" title="Permalink to this headline">¶</a></h2>
+<p>A simple way to get started with accessing the OpenStack command-line
+interface.</p>
+<p>This can be done from acme-seed-hypervisor (for example), or any machine
+that has access to 10.0.0.1:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">openstack# virtualenv openstack-venv</span>
+<span class="go">openstack# source openstack-venv/bin/activate</span>
+<span class="go">openstack# pip install -U pip</span>
+<span class="go">openstack# pip install python-openstackclient</span>
+<span class="go">openstack# source &lt;project&gt;-openrc.sh</span>
+</pre></div>
+</div>
+<p>The <cite>&lt;project&gt;-openrc.sh</cite> file can be downloaded from the OpenStack Dashboard
+(Horizon):</p>
+<img alt="Downloading an openrc file from Horizon" class="no-scaled-link" src="_images/openrc.png" style="width: 200px;" />
+<p>Now it should be possible to run OpenStack commands:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">openstack# openstack server list</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="accessing-deployed-instances">
+<h2>Accessing Deployed Instances<a class="headerlink" href="#accessing-deployed-instances" title="Permalink to this headline">¶</a></h2>
+<p>The external network of OpenStack, called public, connects to the
+subnet 10.0.0.0/8. This network is accessible from acme-seed-hypervisor and the rest of the Acme network.</p>
+<p>Any OpenStack instance can make outgoing connections to this network, via a
+router that connects the internal network of the project to the
+public network.</p>
+<p>To enable incoming connections (e.g. SSH), a floating IP is required. A
+floating IP is allocated and associated via OpenStack. Security groups must be
+set to permit the kind of connectivity required (i.e. to define the ports that
+must be opened).</p>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">OpenStack Administration Guide</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Working with OpenStack</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#accessing-the-dashboard-horizon">Accessing the Dashboard (Horizon)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#accessing-the-openstack-cli">Accessing the OpenStack CLI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#accessing-deployed-instances">Accessing Deployed Instances</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="working_with_kayobe.html">Working with Kayobe</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hardware_inventory_management.html">Hardware Inventory Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ceph_storage.html">Ceph Storage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="managing_users_and_projects.html">Managing Users and Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="operations_and_monitoring.html">Operations and Monitoring</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="introduction.html" title="previous chapter">Introduction</a></li>
+      <li>Next: <a href="working_with_kayobe.html" title="next chapter">Working with Kayobe</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, StackHPC Ltd.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/working_with_openstack.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
