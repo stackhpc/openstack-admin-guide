@@ -24,6 +24,7 @@ Contents
    ceph_storage
    managing_users_and_projects
    operations_and_monitoring
+   customising_deployment
 
 Indices and search
 ==================

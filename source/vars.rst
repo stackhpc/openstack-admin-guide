@@ -9,6 +9,8 @@
 .. |floating_ip_access| replace:: from acme-seed-hypervisor and the rest of the Acme network
 .. |grafana_url| replace:: https://openstack.acme.example:3000
 .. |horizon_access| replace:: via the Internet.
+.. |horizon_theme_clone_url| replace:: https://github.com/acme-openstack/horizon-theme.git
+.. |horizon_theme_name| replace:: acme
 .. |horizon_url| replace:: https://openstack.acme.example
 .. |hypervisor_hostname| replace:: ``comp0``
 .. |hypervisor_type| replace:: KVM
