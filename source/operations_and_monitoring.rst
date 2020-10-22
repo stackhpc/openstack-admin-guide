@@ -654,3 +654,23 @@ To boot an instance on a specific hypervisor, for example on
    :substitutions:
 
    admin# openstack server create --flavor |flavor_name| --network |network_name| --key-name <key> --image CentOS8.2 --availability-zone nova::|hypervisor_hostname| vm-name
+
+Cleanup Procedures
+==================
+
+OpenStack services can sometimes fail to remove all resources correctly. This
+is the case with Magnum, which fails to clean up users in its domain after
+clusters are deleted. `A patch has been submitted to stable branches
+<https://review.opendev.org/#/q/Ibadd5b57fe175bb0b100266e2dbcc2e1ea4efcf9>`__.
+Until this fix becomes available, if Magnum is in use, administrators can
+perform the following cleanup procedure regularly:
+
+.. code-block:: console
+
+   admin# for user in $(openstack user list --domain magnum -f value -c Name | grep -v magnum_trustee_domain_admin); do
+            if openstack coe cluster list -c uuid -f value | grep -q $(echo $user | sed 's/_[0-9a-f]*$//'); then
+              echo "$user still in use, not deleting"
+            else
+              openstack user delete --domain magnum $user
+            fi
+          done
