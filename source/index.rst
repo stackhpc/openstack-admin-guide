@@ -25,6 +25,7 @@ Contents
    managing_users_and_projects
    operations_and_monitoring
    customising_deployment
+   gpus_in_openstack
 
 Indices and search
 ==================
