@@ -4,7 +4,7 @@
 Support for GPUs in OpenStack
 =============================
 
-This guide is has been developed for Nvidia GPUs and CentOS 8.
+This guide has been developed for Nvidia GPUs and CentOS 8.
 
 See `Kayobe Ops <https://github.com/stackhpc/kayobe-ops>`_ for
 a playbook implementation of host setup for GPU.
@@ -245,7 +245,7 @@ For PCI Passthrough and GPUs in OpenStack:
 * https://www.jimmdenton.com/gpu-offloading-openstack/
 * https://docs.openstack.org/nova/latest/admin/pci-passthrough.html
 * https://docs.openstack.org/nova/latest/admin/virtual-gpu.html (vGPU only)
-* Telsa models in OpenStack: https://egallen.com/openstack-nvidia-tesla-gpu-passthrough/
+* Tesla models in OpenStack: https://egallen.com/openstack-nvidia-tesla-gpu-passthrough/
 * https://wiki.archlinux.org/index.php/PCI_passthrough_via_OVMF
 * https://www.kernel.org/doc/Documentation/Intel-IOMMU.txt
 * https://access.redhat.com/documentation/en-us/red_hat_virtualization/4.1/html/installation_guide/appe-configuring_a_hypervisor_host_for_pci_passthrough
