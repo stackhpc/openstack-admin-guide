@@ -188,6 +188,42 @@ Once this code has taken effect (after a reboot), the VFIO kernel drivers should
 OpenStack Nova configuration
 ----------------------------
 
+Scheduler Filters
+~~~~~~~~~~~~~~~~~
+
+Hypervisor Resource Tracking
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Configuration can be applied in flexible ways using Kolla-Ansible's
+methods for `inventory-driven customisation of configuration
+<https://docs.openstack.org/kayobe/latest/configuration/reference/kolla-ansible.html#service-configuration>`_.
+The following configuration could be added to
+``etc/kayobe/kolla/config/nova/nova-compute.conf`` to enable PCI
+passthrough of GPU devices for hosts in a group named ``compute_gpu``.
+Again, the 4-digit PCI Vendor ID and Device ID extracted from ``lspci
+-nn`` can be used here to specify the GPU device(s).
+
+.. code-block:: yaml
+
+   [pci]
+   {% raw %}
+   {% if inventory_hostname in groups['compute_gpu'] %}
+   # We could support multiple models of GPU.
+   # This can be done more selectively using different inventory groups.
+   # GPU models defined here:
+   # NVidia Tesla V100 16GB
+   # NVidia Tesla V100 32GB
+   # NVidia Tesla P100 16GB
+   passthrough_whitelist = [{ "vendor_id":"10de", "product_id":"1db4" },
+                            { "vendor_id":"10de", "product_id":"1db5" },
+                            { "vendor_id":"10de", "product_id":"15f8" }]
+   alias = { "vendor_id":"10de", "product_id":"1db4", "device_type":"type-PCI", "name":"gpu-v100-16" }
+   alias = { "vendor_id":"10de", "product_id":"1db5", "device_type":"type-PCI", "name":"gpu-v100-32" }
+   alias = { "vendor_id":"10de", "product_id":"15f8", "device_type":"type-PCI", "name":"gpu-p100" }
+   {% endif %}
+   {% endraw %}
+
+
 Testing GPU in a Guest VM
 -------------------------
 
