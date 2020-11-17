@@ -674,3 +674,24 @@ perform the following cleanup procedure regularly:
               openstack user delete --domain magnum $user
             fi
           done
+
+Elasticsearch indexes retention
+===============================
+To enable and alter default rotation values for Elasticsearch Curator edit ``${KAYOBE_CONFIG_PATH}/kolla/globals.yml`` - This applies both to Monasca and Central Logging configurations.
+
+.. code-block:: console
+
+   # Allow Elasticsearch Curator to apply a retention policy to logs
+   enable_elasticsearch_curator: true
+   # Duration after which index is closed
+   elasticsearch_curator_soft_retention_period_days: 90
+   # Duration after which index is deleted
+   elasticsearch_curator_hard_retention_period_days: 180
+
+Reconfigure elasticsearch with new values:
+
+.. code-block:: console
+
+   kayobe overcloud service reconfigure --kolla-tags elasticsearch --kolla-skip-tags common --skip-precheck
+
+For more information see `upstream documentation <https://docs.openstack.org/kolla-ansible/ussuri/reference/logging-and-monitoring/central-logging-guide.html#curator>`__
