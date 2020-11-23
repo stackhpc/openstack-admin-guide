@@ -47,13 +47,20 @@ To see where all virtual machines are running on the hypervisors:
 
    admin# openstack server list --all-projects --long
 
-To move a virtual machine from one hypervisor to another, for example to
+To move a virtual machine with shared storage or booted from volume from one hypervisor to another, for example to
 |hypervisor_hostname|:
 
 .. code-block:: console
    :substitutions:
 
    admin# openstack --os-compute-api-version 2.30 server migrate --live-migration --host |hypervisor_hostname| 6a35592c-5a7e-4da3-9ab9-6765345641cb
+
+To move a virtual machine with local disks:
+
+.. code-block:: console
+   :substitutions:
+
+   admin# openstack --os-compute-api-version 2.30 server migrate --live-migration --block-migration --host |hypervisor_hostname| 6a35592c-5a7e-4da3-9ab9-6765345641cb
 
 OpenStack Reconfiguration
 =========================
