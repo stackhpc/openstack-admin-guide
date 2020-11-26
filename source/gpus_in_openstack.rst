@@ -21,7 +21,7 @@ Hypervisor Configuration Requirements
 -------------------------------------
 
 Find the GPU device IDs
-~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^
 
 From the host OS, use ``lspci -nn`` to find the PCI vendor ID and
 device ID for the GPU device and supporting components.  These are
@@ -52,7 +52,7 @@ Alternatively, for an Nvidia Quadro RTX 6000:
 These parameters will be used for device-specific configuration.
 
 Kernel Ramdisk Reconfiguration
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The ramdisk loaded during kernel boot can be extended to include the
 vfio PCI drivers and ensure they are loaded early in system boot.
@@ -85,7 +85,7 @@ The handler for regenerating the Dracut initramfs is:
      become: true
 
 Kernel Boot Parameters
-~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^
 
 Set the following kernel parameters by adding to
 ``GRUB_CMDLINE_LINUX_DEFAULT`` or ``GRUB_CMDLINE_LINUX`` in
@@ -109,7 +109,7 @@ role from Ansible Galaxy:
          - vfio-pci.ids
 
 Kernel Device Management
-~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 In the hypervisor, we must prevent kernel device initialisation of
 the GPU and prevent drivers from loading for binding the GPU in the
@@ -133,7 +133,7 @@ host OS.  We do this using ``udev`` rules:
       become: true
 
 Kernel Drivers
-~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^
 
 Prevent the ``nouveau`` kernel driver from loading by
 blacklisting the module:
@@ -203,7 +203,7 @@ OpenStack Nova configuration
 ----------------------------
 
 Configure nova-scheduler
-~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 The nova-scheduler service must be configured to enable the ``PciPassthroughFilter``
 To enable it add it to the list of filters to Kolla-Ansible configuration file:
@@ -216,7 +216,7 @@ To enable it add it to the list of filters to Kolla-Ansible configuration file:
    enabled_filters = AvailabilityZoneFilter, ComputeFilter, ComputeCapabilitiesFilter, ImagePropertiesFilter, ServerGroupAntiAffinityFilter, ServerGroupAffinityFilter, PciPassthroughFilter
 
 Configure nova-compute
-~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^
 
 Configuration can be applied in flexible ways using Kolla-Ansible's
 methods for `inventory-driven customisation of configuration
@@ -248,7 +248,7 @@ Again, the 4-digit PCI Vendor ID and Device ID extracted from ``lspci
    {% endraw %}
 
 Configure nova-api
-~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^
 
 pci.alias also needs to be configured on the controller. 
 This configuration should match the configuration found on the compute nodes.
@@ -263,14 +263,15 @@ Add it to Kolla-Ansible configuration file:
    alias = { "vendor_id":"10de", "product_id":"15f8", "device_type":"type-PCI", "name":"gpu-p100" }
 
 Reconfigure nova service
-~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. code-block:: text
 
    kayobe overcloud service reconfigure -kt nova --kolla-skip-tags common --skip-precheck
 
 Configure a flavor
-~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^
+
 For example, to request two of the GPUs with alias gpu-p100
 
 .. code-block:: text
@@ -278,8 +279,35 @@ For example, to request two of the GPUs with alias gpu-p100
    openstack flavor set m1.medium --property "pci_passthrough:alias"="gpu-p100:2"
 
 
+This can be also defined in the |project_config| repository:
+|project_config_source_url|
+
+add extra_specs to flavor in etc/|project_config|/|project_config|.yml:
+
+.. code-block:: console
+   :substitutions:
+
+   admin# cd |base_path|/src/|project_config|
+   admin# vim etc/|project_config|/|project_config|.yml
+
+    name: "m1.medium"
+    ram: 4096
+    disk: 40
+    vcpus: 2
+    extra_specs:
+      "pci_passthrough:alias": "gpu-p100:2"
+
+Invoke configuration playbooks afterwards:
+
+.. code-block:: console
+   :substitutions:
+
+   admin# source |base_path|/src/|kayobe_config|/etc/kolla/public-openrc.sh
+   admin# source |base_path|/venvs/|project_config|/bin/activate
+   admin# tools/|project_config| --vault-password-file |vault_password_file_path|
+
 Create instance with GPU passthrough
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. code-block:: text
 
