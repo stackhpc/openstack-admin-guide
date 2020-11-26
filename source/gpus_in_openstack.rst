@@ -106,7 +106,7 @@ role from Ansible Galaxy:
        kernel_cmdline_remove:
          - iommu
          - intel_iommu
-         - vfio-pci.ids:
+         - vfio-pci.ids
 
 Kernel Device Management
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -185,14 +185,38 @@ Once this code has taken effect (after a reboot), the VFIO kernel drivers should
    vfio                   32768  2 vfio_iommu_type1,vfio_pci
    irqbypass              16384  5 vfio_pci,kvm
 
+   # lspci -nnk -s 3d:00.0
+   3d:00.0 VGA compatible controller [0300]: NVIDIA Corporation GM107GL [Tesla M10] [10de:13bd] (rev a2)
+	 Subsystem: NVIDIA Corporation Tesla M10 [10de:1160]
+	 Kernel driver in use: vfio-pci
+	 Kernel modules: nouveau
+
+IOMMU should be enabled at kernel level as well - we can verify that on the compute host:
+
+.. code-block:: text
+
+   # docker exec -it nova_libvirt virt-host-validate | grep IOMMU
+   QEMU: Checking for device assignment IOMMU support                         : PASS
+   QEMU: Checking if IOMMU is enabled by kernel                               : PASS
+
 OpenStack Nova configuration
 ----------------------------
 
-Scheduler Filters
-~~~~~~~~~~~~~~~~~
+Configure nova-scheduler
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-Hypervisor Resource Tracking
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The nova-scheduler service must be configured to enable the ``PciPassthroughFilter``
+To enable it add it to the list of filters to Kolla-Ansible configuration file:
+``etc/kayobe/kolla/config/nova.conf``, for instance:
+
+.. code-block:: yaml
+
+   [filter_scheduler]
+   available_filters = nova.scheduler.filters.all_filters
+   enabled_filters = AvailabilityZoneFilter, ComputeFilter, ComputeCapabilitiesFilter, ImagePropertiesFilter, ServerGroupAntiAffinityFilter, ServerGroupAffinityFilter, PciPassthroughFilter
+
+Configure nova-compute
+~~~~~~~~~~~~~~~~~~~~~~
 
 Configuration can be applied in flexible ways using Kolla-Ansible's
 methods for `inventory-driven customisation of configuration
@@ -203,7 +227,7 @@ passthrough of GPU devices for hosts in a group named ``compute_gpu``.
 Again, the 4-digit PCI Vendor ID and Device ID extracted from ``lspci
 -nn`` can be used here to specify the GPU device(s).
 
-.. code-block:: yaml
+.. code-block:: jinja
 
    [pci]
    {% raw %}
@@ -223,6 +247,43 @@ Again, the 4-digit PCI Vendor ID and Device ID extracted from ``lspci
    {% endif %}
    {% endraw %}
 
+Configure nova-api
+~~~~~~~~~~~~~~~~~~
+
+pci.alias also needs to be configured on the controller. 
+This configuration should match the configuration found on the compute nodes.
+Add it to Kolla-Ansible configuration file:
+``etc/kayobe/kolla/config/nova-api/nova.conf``, for instance:
+
+.. code-block:: yaml
+
+   [pci]
+   alias = { "vendor_id":"10de", "product_id":"1db4", "device_type":"type-PCI", "name":"gpu-v100-16" }
+   alias = { "vendor_id":"10de", "product_id":"1db5", "device_type":"type-PCI", "name":"gpu-v100-32" }
+   alias = { "vendor_id":"10de", "product_id":"15f8", "device_type":"type-PCI", "name":"gpu-p100" }
+
+Reconfigure nova service
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: text
+
+   kayobe overcloud service reconfigure -kt nova --kolla-skip-tags common --skip-precheck
+
+Configure a flavor
+~~~~~~~~~~~~~~~~~~
+For example, to request two of the GPUs with alias gpu-p100
+
+.. code-block:: text
+
+   openstack flavor set m1.medium --property "pci_passthrough:alias"="gpu-p100:2"
+
+
+Create instance with GPU passthrough
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: text
+
+   openstack server create --flavor m1.medium --image ubuntu2004 --wait test-pci
 
 Testing GPU in a Guest VM
 -------------------------
@@ -250,4 +311,3 @@ For PCI Passthrough and GPUs in OpenStack:
 * https://www.kernel.org/doc/Documentation/Intel-IOMMU.txt
 * https://access.redhat.com/documentation/en-us/red_hat_virtualization/4.1/html/installation_guide/appe-configuring_a_hypervisor_host_for_pci_passthrough
 * https://www.gresearch.co.uk/article/utilising-the-openstack-placement-service-to-schedule-gpu-and-nvme-workloads-alongside-general-purpose-instances/
-
