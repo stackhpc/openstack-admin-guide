@@ -54,6 +54,12 @@ html_theme = 'alabaster'
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
+html_theme_options = {
+    'page_width': '80em',
+    'body_max_width': '80em',
+    'sidebar_width' : '20em'
+}
+
 # -- Load deployment configuration from YAML ---------------------------------
 
 import yaml
