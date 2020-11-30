@@ -253,7 +253,7 @@ Configure nova-api
 pci.alias also needs to be configured on the controller. 
 This configuration should match the configuration found on the compute nodes.
 Add it to Kolla-Ansible configuration file:
-``etc/kayobe/kolla/config/nova-api/nova.conf``, for instance:
+``etc/kayobe/kolla/config/nova/nova-api.conf``, for instance:
 
 .. code-block:: yaml
 
@@ -267,7 +267,7 @@ Reconfigure nova service
 
 .. code-block:: text
 
-   kayobe overcloud service reconfigure -kt nova --kolla-skip-tags common --skip-precheck
+   kayobe overcloud service reconfigure --kolla-tags nova --kolla-skip-tags common --skip-prechecks
 
 Configure a flavor
 ^^^^^^^^^^^^^^^^^^
