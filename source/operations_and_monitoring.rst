@@ -554,7 +554,7 @@ with the following command:
 
 .. code-block:: console
 
-   kayobe# kayobe kolla ansible run mariadb_recovery
+   kayobe# kayobe overcloud database recover
 
 Ansible Control Host
 --------------------
