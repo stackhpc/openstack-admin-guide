@@ -174,6 +174,120 @@ For example, to take |hypervisor_hostname| out of maintenance:
    seed# sudo docker exec -it bifrost_deploy /bin/bash
    (bifrost-deploy)[root@seed bifrost-base]# OS_CLOUD=bifrost openstack baremetal node maintenance unset |hypervisor_hostname|
 
+Detect hardware differences with cardiff
+----------------------------------------
+
+Hardware information captured during the Ironic introspection process can be
+analysed to detect hardware differences, such as mismatches in firmware
+versions or missing storage devices. The cardiff tool can be used for this
+purpose. It was developed as part of the `Python hardware package
+<https://pypi.org/project/hardware/>`__, but was removed from release 0.25. The
+`mungetout utility <https://github.com/stackhpc/mungetout/>`__ can be used to
+convert Ironic introspection data into a format that can be fed to cardiff.
+
+The following steps are used to install cardiff and mungetout:
+
+.. code-block:: console
+   :substitutions:
+
+   kayobe# virtualenv |base_path|/venvs/cardiff
+   kayobe# source |base_path|/venvs/cardiff/bin/activate
+   kayobe# pip install -U pip
+   kayobe# pip install git+https://github.com/stackhpc/mungetout.git@feature/kayobe-introspection-save
+   kayobe# pip install 'hardware==0.24'
+
+Extract introspection data from Bifrost with Kayobe. JSON files will be created
+into ``${KAYOBE_CONFIG_PATH}/overcloud-introspection-data``:
+
+.. code-block:: console
+   :substitutions:
+
+   kayobe# source |base_path|/venvs/kayobe/bin/activate
+   kayobe# source |base_path|/src/kayobe-config/kayobe-env
+   kayobe# kayobe overcloud introspection data save
+
+The cardiff utility can only work if the ``extra-hardware`` collector was used,
+which populates a ``data`` key in each node JSON file. Remove any that are
+missing this key:
+
+.. code-block:: console
+   :substitutions:
+
+   kayobe# for file in |base_path|/src/kayobe-config/overcloud-introspection-data/*; do if [[ $(jq .data $file) == 'null' ]]; then rm $file; fi; done
+
+Cardiff identifies each unique system by its serial number. However, some
+high-density multi-node systems may report the same serial number for multiple
+systems (this has been seen on Supermicro hardware). The following script will
+replace the serial number used by Cardiff by the node name captured by LLDP on
+the first network interface. If this node name is missing, it will append a
+short UUID string to the end of the serial number.
+
+.. code-block:: python
+
+   import json
+   import sys
+   import uuid
+
+   with open(sys.argv[1], "r+") as f:
+       node = json.loads(f.read())
+
+       serial = node["inventory"]["system_vendor"]["serial_number"]
+       try:
+           new_serial = node["all_interfaces"]["eth0"]["lldp_processed"]["switch_port_description"]
+       except KeyError:
+           new_serial = serial + "-" + str(uuid.uuid4())[:8]
+
+       new_data = []
+       for e in node["data"]:
+           if e[0] == "system" and e[1] == "product" and e[2] == "serial":
+               new_data.append(["system", "product", "serial", new_serial])
+           else:
+               new_data.append(e)
+       node["data"] = new_data
+
+       f.seek(0)
+       f.write(json.dumps(node))
+       f.truncate()
+
+Apply this Python script on all generated JSON files:
+
+.. code-block:: console
+   :substitutions:
+
+   kayobe# for file in ~/src/kayobe-config/overcloud-introspection-data/*; do python update-serial.py $file; done
+
+Convert files into the format supported by cardiff:
+
+.. code-block:: console
+   :substitutions:
+
+   source |base_path|/venvs/cardiff/bin/activate
+   mkdir -p |base_path|/cardiff-workspace
+   rm -rf |base_path|/cardiff-workspace/extra*
+   cd |base_path|/cardiff-workspace/
+   m2-extract |base_path|/src/kayobe-config/overcloud-introspection-data/*.json
+
+.. note::
+
+   The ``m2-extract`` utility needs to work in an empty folder. Delete the
+   ``extra-hardware``, ``extra-hardware-filtered`` and ``extra-hardware-json``
+   folders before executing it again.
+
+We are now ready to compare node hardware. The following command will compare
+all known nodes, which may include multiple generations of hardware. Replace
+``*.eval`` by a stricter globbing expression or by a list of files to compare a
+smaller group.
+
+.. code-block:: console
+
+   hardware-cardiff -I ipmi -p 'extra-hardware/*.eval'
+
+Since the output can be verbose, it is recommended to pipe it to a terminal
+pager or redirect it to a file. Cardiff will display groups of identical nodes
+based on various hardware characteristics, such as system model, BIOS version,
+CPU or network interface information, or benchmark results gathered by the
+``extra-hardware`` collector during the initial introspection process.
+
 .. ifconfig:: deployment['ceph_managed']
 
    .. include:: hardware_inventory_management_ceph.rst
