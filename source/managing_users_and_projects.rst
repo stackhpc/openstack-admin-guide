@@ -39,7 +39,7 @@ Example invocation:
 
    admin# source |base_path|/src/|kayobe_config|/etc/kolla/public-openrc.sh
    admin# source |base_path|/venvs/|project_config|/bin/activate
-   admin# tools/|project_config| --vault-password-file |vault_password_file_path|
+   admin# tools/|project_config| -- --vault-password-file |vault_password_file_path|
 
 Deleting Users and Projects
 ---------------------------
