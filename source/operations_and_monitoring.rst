@@ -502,22 +502,10 @@ Shutting down the seed VM
    kayobe# ssh stack@|seed_name| sudo systemctl poweroff
    kayobe# virsh shutdown |seed_name|
 
-.. _full-shutdown:
-
 Full shutdown
 -------------
 
-In case a full shutdown of the system is required, we advise to use the
-following order:
-
-* Perform a graceful shutdown of all virtual machine instances
-* Shut down compute nodes
-* Shut down monitoring node
-* Shut down network nodes (if separate from controllers)
-* Shut down controllers
-* Shut down Ceph nodes (if applicable)
-* Shut down seed VM
-* Shut down Ansible control host
+Follow separate :doc:`document <full_shutdown>`.
 
 Rebooting a node
 ----------------
@@ -575,7 +563,7 @@ hypervisor is powered on. If it does not, it can be started with:
 Full power on
 -------------
 
-Follow the order in :ref:`full-shutdown`, but in reverse order.
+Follow separate :ref:`document <full-power-on>`.
 
 Shutting Down / Restarting Monitoring Services
 ----------------------------------------------
