@@ -24,6 +24,7 @@ Contents
    ceph_storage
    managing_users_and_projects
    operations_and_monitoring
+   full_shutdown
    customising_deployment
    gpus_in_openstack
 
