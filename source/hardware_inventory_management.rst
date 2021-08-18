@@ -91,6 +91,19 @@ To replace a failing hypervisor, proceed as follows:
 * It may be necessary to reinspect the node if hardware was changed (this will require deprovisioning and reprovisioning)
 * If the node was replaced or reprovisioned, follow :ref:`enrolling-new-hypervisors`
 
+To deprovision an existing hypervisor, run:
+
+.. code-block:: console
+   :substitutions:
+
+   kayobe# kayobe overcloud deprovision --limit |hypervisor_hostname|
+
+.. warning::
+
+   Always use ``--limit`` with ``kayobe overcloud deprovision`` on a production
+   system. Running this command without a limit will deprovision all overcloud
+   hosts.
+
 .. _evacuating-all-instances:
 
 Evacuating all instances
