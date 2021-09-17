@@ -1,0 +1,242 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Customising the OpenStack Deployment &#8212; OpenStack Administration Guide  documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Support for GPUs in OpenStack" href="gpus_in_openstack.html" />
+    <link rel="prev" title="Operations and Monitoring" href="operations_and_monitoring.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="customising-the-openstack-deployment">
+<h1>Customising the OpenStack Deployment<a class="headerlink" href="#customising-the-openstack-deployment" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="horizon-customisations">
+<h2>Horizon customisations<a class="headerlink" href="#horizon-customisations" title="Permalink to this headline">¶</a></h2>
+<p>Horizon is the most frequent site-specific container customisation required:
+other customisations tend to be common across deployments, but personalisation
+of Horizon is unique to each institution.</p>
+<p>This describes a simple process for customising the Horizon theme.</p>
+<div class="section" id="creating-a-custom-horizon-theme">
+<h3>Creating a custom Horizon theme<a class="headerlink" href="#creating-a-custom-horizon-theme" title="Permalink to this headline">¶</a></h3>
+<p>A simple custom theme for Horizon can be implemented as small modifications of
+an existing theme, such as the <a class="reference external" href="https://opendev.org/openstack/horizon/src/branch/master/openstack_dashboard/themes/default">Default</a>
+one.</p>
+<p>A theme contains at least two files: <code class="docutils literal notranslate"><span class="pre">static/_styles.scss</span></code>, which can be empty, and
+<code class="docutils literal notranslate"><span class="pre">static/_variables.scss</span></code>, which can reference another theme like this:</p>
+<div class="highlight-scss notranslate"><div class="highlight"><pre><span></span><span class="k">@import</span> <span class="s2">&quot;/themes/default/variables&quot;</span><span class="p">;</span>
+<span class="k">@import</span> <span class="s2">&quot;/themes/default/styles&quot;</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>Some resources such as logos can be overridden by dropping SVG image files into
+<code class="docutils literal notranslate"><span class="pre">static/img</span></code> (since the Ocata release, files must be SVG instead of PNG). See
+<a class="reference external" href="https://docs.openstack.org/horizon/latest/configuration/themes.html#customizing-the-logo">the Horizon documentation</a>
+for more details.</p>
+<p>Content on some pages such as the splash (login) screen can be updated using
+templates.</p>
+<p>See <a class="reference external" href="https://github.com/stackhpc/horizon-theme">our example horizon-theme</a>
+which inherits from the default theme and includes:</p>
+<ul class="simple">
+<li><p>a custom splash screen logo</p></li>
+<li><p>a custom top-left logo</p></li>
+<li><p>a custom message on the splash screen</p></li>
+</ul>
+<p>Further reading:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://docs.openstack.org/horizon/latest/configuration/customizing.html">https://docs.openstack.org/horizon/latest/configuration/customizing.html</a></p></li>
+<li><p><a class="reference external" href="https://docs.openstack.org/horizon/latest/configuration/themes.html">https://docs.openstack.org/horizon/latest/configuration/themes.html</a></p></li>
+<li><p><a class="reference external" href="https://docs.openstack.org/horizon/latest/configuration/branding.html">https://docs.openstack.org/horizon/latest/configuration/branding.html</a></p></li>
+</ul>
+</div>
+<div class="section" id="building-a-custom-horizon-container-image">
+<h3>Building a custom Horizon container image<a class="headerlink" href="#building-a-custom-horizon-container-image" title="Permalink to this headline">¶</a></h3>
+<p>Building a custom container image for Horizon can be done by modifying
+<code class="docutils literal notranslate"><span class="pre">kolla.yml</span></code> to fetch the custom theme and include it in the image:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">kolla_sources:</span>
+<span class="go">  horizon-additions-theme-acme:</span>
+<span class="go">    type: &quot;git&quot;</span>
+<span class="go">    location: https://github.com/acme-openstack/horizon-theme.git</span>
+<span class="go">    reference: master</span>
+
+<span class="go">kolla_build_blocks:</span>
+<span class="go">  horizon_footer: |</span>
+<span class="gp">    # </span>Binary images cannot use the additions mechanism.
+<span class="go">    {% raw %}</span>
+<span class="go">    {% if install_type == &#39;source&#39; %}</span>
+<span class="go">    ADD additions-archive /</span>
+<span class="go">    RUN mkdir -p /etc/openstack-dashboard/themes/acme \</span>
+<span class="go">      &amp;&amp; cp -R /additions/horizon-additions-theme-acme-archive-master/* /etc/openstack-dashboard/themes/acme/ \</span>
+<span class="go">      &amp;&amp; chown -R horizon: /etc/openstack-dashboard/themes</span>
+<span class="go">    {% endif %}</span>
+<span class="go">    {% endraw %}</span>
+</pre></div>
+</div>
+<p>If using Train on CentOS 8, don’t forget to set:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">kolla_tag: train-centos8</span>
+</pre></div>
+</div>
+<p>Build the image with:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">kayobe overcloud container image build horizon -e kolla_install_type=source --push</span>
+</pre></div>
+</div>
+<p>Pull the new Horizon container to the controller:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">kayobe overcloud container image pull --kolla-tags horizon</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="deploy-and-use-the-custom-theme">
+<h3>Deploy and use the custom theme<a class="headerlink" href="#deploy-and-use-the-custom-theme" title="Permalink to this headline">¶</a></h3>
+<p>Switch to source image type in <code class="docutils literal notranslate"><span class="pre">${KAYOBE_CONFIG_PATH}/kolla/globals.yml</span></code>:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">horizon_install_type: source</span>
+</pre></div>
+</div>
+<p>Configure Horizon to include the custom theme and use it by default:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">mkdir -p ${KAYOBE_CONFIG_PATH}/kolla/config/horizon/</span>
+</pre></div>
+</div>
+<p>Add to <code class="docutils literal notranslate"><span class="pre">${KAYOBE_CONFIG_PATH}/kolla/config/horizon/custom_local_settings</span></code>:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">AVAILABLE_THEMES = [</span>
+<span class="go">    (&#39;default&#39;, &#39;Default&#39;, &#39;themes/default&#39;),</span>
+<span class="go">    (&#39;material&#39;, &#39;Material&#39;, &#39;themes/material&#39;),</span>
+<span class="go">    (&#39;acme&#39;, &#39;Acme&#39;, &#39;/etc/openstack-dashboard/themes/acme&#39;),</span>
+<span class="go">]</span>
+<span class="go">DEFAULT_THEME = &#39;acme&#39;</span>
+</pre></div>
+</div>
+<p>You can also set other customisations in this file, such as the HTML title of the page:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">SITE_BRANDING = &quot;Acme OpenStack&quot;</span>
+</pre></div>
+</div>
+<p>Deploy with:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">kayobe overcloud service reconfigure --kolla-tags horizon --kolla-skip-tags common --skip-prechecks</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="troubleshooting">
+<h3>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permalink to this headline">¶</a></h3>
+<p>Make sure you build source images, as binary images cannot use the addition
+mechanism used here.</p>
+<p>If the theme is selected but the logo doesn’t load, try running these commands
+inside the <code class="docutils literal notranslate"><span class="pre">horizon</span></code> container:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">/var/lib/kolla/venv/bin/python /var/lib/kolla/venv/bin/manage.py collectstatic --noinput --clear</span>
+<span class="go">/var/lib/kolla/venv/bin/python /var/lib/kolla/venv/bin/manage.py compress --force</span>
+<span class="go">settings_bundle | md5sum &gt; /var/lib/kolla/.settings.md5sum.txt</span>
+</pre></div>
+</div>
+<p>Alternatively, try changing anything in <code class="docutils literal notranslate"><span class="pre">custom_local_settings</span></code> and restarting
+the <code class="docutils literal notranslate"><span class="pre">horizon</span></code> container.</p>
+<p>If the <code class="docutils literal notranslate"><span class="pre">horizon</span></code> container is restarting with the following error:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">/var/lib/kolla/venv/bin/python /var/lib/kolla/venv/bin/manage.py compress --force</span>
+<span class="go">CommandError: An error occurred during rendering /var/lib/kolla/venv/lib/python3.6/site-packages/openstack_dashboard/templates/horizon/_scripts.html: Couldn&#39;t find any precompiler in COMPRESS_PRECOMPILERS setting for mimetype &#39;\&#39;text/javascript\&#39;&#39;.</span>
+</pre></div>
+</div>
+<p>It can be resolved by dropping cached content with <code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">restart</span>
+<span class="pre">memcached</span></code>. Note this will log out users from Horizon, as Django sessions are
+stored in Memcached.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">OpenStack Administration Guide</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="working_with_openstack.html">Working with OpenStack</a></li>
+<li class="toctree-l1"><a class="reference internal" href="working_with_kayobe.html">Working with Kayobe</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hardware_inventory_management.html">Hardware Inventory Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ceph_storage.html">Ceph Storage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="managing_users_and_projects.html">Managing Users and Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="operations_and_monitoring.html">Operations and Monitoring</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Customising the OpenStack Deployment</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#horizon-customisations">Horizon customisations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gpus_in_openstack.html">Support for GPUs in OpenStack</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="operations_and_monitoring.html" title="previous chapter">Operations and Monitoring</a></li>
+      <li>Next: <a href="gpus_in_openstack.html" title="next chapter">Support for GPUs in OpenStack</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, StackHPC Ltd.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/customising_deployment.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

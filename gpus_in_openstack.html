@@ -1,0 +1,409 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Support for GPUs in OpenStack &#8212; OpenStack Administration Guide  documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Customising the OpenStack Deployment" href="customising_deployment.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="support-for-gpus-in-openstack">
+<h1>Support for GPUs in OpenStack<a class="headerlink" href="#support-for-gpus-in-openstack" title="Permalink to this headline">¶</a></h1>
+<p>This guide has been developed for Nvidia GPUs and CentOS 8.</p>
+<p>See <a class="reference external" href="https://github.com/stackhpc/kayobe-ops">Kayobe Ops</a> for
+a playbook implementation of host setup for GPU.</p>
+<div class="section" id="bios-configuration-requirements">
+<h2>BIOS Configuration Requirements<a class="headerlink" href="#bios-configuration-requirements" title="Permalink to this headline">¶</a></h2>
+<p>On an Intel system:</p>
+<ul class="simple">
+<li><p>Enable <cite>VT-x</cite> in the BIOS for virtualisation support.</p></li>
+<li><p>Enable <cite>VT-d</cite> in the BIOS for IOMMU support.</p></li>
+</ul>
+</div>
+<div class="section" id="hypervisor-configuration-requirements">
+<h2>Hypervisor Configuration Requirements<a class="headerlink" href="#hypervisor-configuration-requirements" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="find-the-gpu-device-ids">
+<h3>Find the GPU device IDs<a class="headerlink" href="#find-the-gpu-device-ids" title="Permalink to this headline">¶</a></h3>
+<p>From the host OS, use <code class="docutils literal notranslate"><span class="pre">lspci</span> <span class="pre">-nn</span></code> to find the PCI vendor ID and
+device ID for the GPU device and supporting components.  These are
+4-digit hex numbers.</p>
+<p>For example:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>01:00.0 VGA compatible controller [0300]: NVIDIA Corporation GM204M [GeForce GTX 980M] [10de:13d7] (rev a1) (prog-if 00 [VGA controller])
+01:00.1 Audio device [0403]: NVIDIA Corporation GM204 High Definition Audio Controller [10de:0fbb] (rev a1)
+</pre></div>
+</div>
+<p>In this case the vendor ID is <code class="docutils literal notranslate"><span class="pre">10de</span></code>, display ID is <code class="docutils literal notranslate"><span class="pre">13d7</span></code> and audio ID is <code class="docutils literal notranslate"><span class="pre">0fbb</span></code>.</p>
+<p>Alternatively, for an Nvidia Quadro RTX 6000:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># NVIDIA Quadro RTX 6000/8000 PCI device IDs</span>
+<span class="nt">vendor_id</span><span class="p">:</span> <span class="s">&quot;10de&quot;</span>
+<span class="nt">display_id</span><span class="p">:</span> <span class="s">&quot;1e30&quot;</span>
+<span class="nt">audio_id</span><span class="p">:</span> <span class="s">&quot;10f7&quot;</span>
+<span class="nt">usba_id</span><span class="p">:</span> <span class="s">&quot;1ad6&quot;</span>
+<span class="nt">usba_class</span><span class="p">:</span> <span class="s">&quot;0c0330&quot;</span>
+<span class="nt">usbc_id</span><span class="p">:</span> <span class="s">&quot;1ad7&quot;</span>
+<span class="nt">usbc_class</span><span class="p">:</span> <span class="s">&quot;0c8000&quot;</span>
+</pre></div>
+</div>
+<p>These parameters will be used for device-specific configuration.</p>
+</div>
+<div class="section" id="kernel-ramdisk-reconfiguration">
+<h3>Kernel Ramdisk Reconfiguration<a class="headerlink" href="#kernel-ramdisk-reconfiguration" title="Permalink to this headline">¶</a></h3>
+<p>The ramdisk loaded during kernel boot can be extended to include the
+vfio PCI drivers and ensure they are loaded early in system boot.</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Template dracut config</span>
+  <span class="nt">blockinfile</span><span class="p">:</span>
+    <span class="nt">path</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/etc/dracut.conf.d/gpu-vfio.conf</span>
+    <span class="nt">block</span><span class="p">:</span> <span class="p p-Indicator">|</span>
+      <span class="no">add_drivers+=&quot;vfio vfio_iommu_type1 vfio_pci vfio_virqfd&quot;</span>
+    <span class="nt">owner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">root</span>
+    <span class="nt">group</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">root</span>
+    <span class="nt">mode</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0660</span>
+    <span class="nt">create</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>
+  <span class="nt">become</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>
+  <span class="nt">notify</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">Regenerate initramfs</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">reboot</span>
+</pre></div>
+</div>
+<p>The handler for regenerating the Dracut initramfs is:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Regenerate initramfs</span>
+  <span class="nt">shell</span><span class="p">:</span> <span class="p p-Indicator">|-</span>
+    <span class="no">#!/bin/bash</span>
+    <span class="no">set -eux</span>
+    <span class="no">dracut -v -f /boot/initramfs-$(uname -r).img $(uname -r)</span>
+  <span class="nt">become</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="kernel-boot-parameters">
+<h3>Kernel Boot Parameters<a class="headerlink" href="#kernel-boot-parameters" title="Permalink to this headline">¶</a></h3>
+<p>Set the following kernel parameters by adding to
+<code class="docutils literal notranslate"><span class="pre">GRUB_CMDLINE_LINUX_DEFAULT</span></code> or <code class="docutils literal notranslate"><span class="pre">GRUB_CMDLINE_LINUX</span></code> in
+<code class="docutils literal notranslate"><span class="pre">/etc/default/grub.conf</span></code>.  We can use the
+<a class="reference external" href="https://galaxy.ansible.com/stackhpc/grubcmdline">stackhpc.grubcmdline</a>
+role from Ansible Galaxy:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Add vfio-pci.ids kernel args</span>
+  <span class="nt">include_role</span><span class="p">:</span>
+    <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">stackhpc.grubcmdline</span>
+  <span class="nt">vars</span><span class="p">:</span>
+    <span class="nt">kernel_cmdline</span><span class="p">:</span>
+      <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">intel_iommu=on</span>
+      <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">iommu=pt</span>
+      <span class="p p-Indicator">-</span> <span class="s">&quot;vfio-pci.ids={{</span><span class="nv"> </span><span class="s">vendor_id</span><span class="nv"> </span><span class="s">}}:{{</span><span class="nv"> </span><span class="s">display_id</span><span class="nv"> </span><span class="s">}},{{</span><span class="nv"> </span><span class="s">vendor_id</span><span class="nv"> </span><span class="s">}}:{{</span><span class="nv"> </span><span class="s">audio_id</span><span class="nv"> </span><span class="s">}}&quot;</span>
+    <span class="nt">kernel_cmdline_remove</span><span class="p">:</span>
+      <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">iommu</span>
+      <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">intel_iommu</span>
+      <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">vfio-pci.ids</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="kernel-device-management">
+<h3>Kernel Device Management<a class="headerlink" href="#kernel-device-management" title="Permalink to this headline">¶</a></h3>
+<p>In the hypervisor, we must prevent kernel device initialisation of
+the GPU and prevent drivers from loading for binding the GPU in the
+host OS.  We do this using <code class="docutils literal notranslate"><span class="pre">udev</span></code> rules:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Template udev rules to blacklist GPU usb controllers</span>
+  <span class="nt">blockinfile</span><span class="p">:</span>
+    <span class="c1"># We want this to execute as soon as possible</span>
+    <span class="nt">path</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/etc/udev/rules.d/99-gpu.rules</span>
+    <span class="nt">block</span><span class="p">:</span> <span class="p p-Indicator">|</span>
+      <span class="no">#Remove NVIDIA USB xHCI Host Controller Devices, if present</span>
+      <span class="no">ACTION==&quot;add&quot;, SUBSYSTEM==&quot;pci&quot;, ATTR{vendor}==&quot;0x{{ vendor_id }}&quot;, ATTR{class}==&quot;0x{{ usba_class }}&quot;, ATTR{remove}=&quot;1&quot;</span>
+      <span class="no">#Remove NVIDIA USB Type-C UCSI devices, if present</span>
+      <span class="no">ACTION==&quot;add&quot;, SUBSYSTEM==&quot;pci&quot;, ATTR{vendor}==&quot;0x{{ vendor_id }}&quot;, ATTR{class}==&quot;0x{{ usbc_class }}&quot;, ATTR{remove}=&quot;1&quot;</span>
+    <span class="nt">owner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">root</span>
+    <span class="nt">group</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">root</span>
+    <span class="nt">mode</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0644</span>
+    <span class="nt">create</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>
+  <span class=" -Error"> </span><span class="nt">become</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="kernel-drivers">
+<h3>Kernel Drivers<a class="headerlink" href="#kernel-drivers" title="Permalink to this headline">¶</a></h3>
+<p>Prevent the <code class="docutils literal notranslate"><span class="pre">nouveau</span></code> kernel driver from loading by
+blacklisting the module:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Blacklist nouveau</span>
+  <span class="nt">blockinfile</span><span class="p">:</span>
+    <span class="nt">path</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/etc/modprobe.d/blacklist-nouveau.conf</span>
+    <span class="nt">block</span><span class="p">:</span> <span class="p p-Indicator">|</span>
+      <span class="no">blacklist nouveau</span>
+      <span class="no">options nouveau modeset=0</span>
+    <span class="nt">mode</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0664</span>
+    <span class="nt">owner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">root</span>
+    <span class="nt">group</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">root</span>
+    <span class="nt">create</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>
+  <span class="nt">become</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>
+  <span class="nt">notify</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">reboot</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">Regenerate initramfs</span>
+</pre></div>
+</div>
+<p>Ensure that the <code class="docutils literal notranslate"><span class="pre">vfio</span></code> drivers are loaded into the kernel on boot:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Add vfio to modules-load.d</span>
+  <span class="nt">blockinfile</span><span class="p">:</span>
+    <span class="nt">path</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/etc/modules-load.d/vfio.conf</span>
+    <span class="nt">block</span><span class="p">:</span> <span class="p p-Indicator">|</span>
+      <span class="no">vfio</span>
+      <span class="no">vfio_iommu_type1</span>
+      <span class="no">vfio_pci</span>
+      <span class="no">vfio_virqfd</span>
+    <span class="nt">owner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">root</span>
+    <span class="nt">group</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">root</span>
+    <span class="nt">mode</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0664</span>
+    <span class="nt">create</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>
+  <span class="nt">become</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>
+  <span class="nt">notify</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">reboot</span>
+</pre></div>
+</div>
+<p>Once this code has taken effect (after a reboot), the VFIO kernel drivers should be loaded on boot:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span># lsmod | grep vfio
+vfio_pci               49152  0
+vfio_virqfd            16384  1 vfio_pci
+vfio_iommu_type1       28672  0
+vfio                   32768  2 vfio_iommu_type1,vfio_pci
+irqbypass              16384  5 vfio_pci,kvm
+
+# lspci -nnk -s 3d:00.0
+3d:00.0 VGA compatible controller [0300]: NVIDIA Corporation GM107GL [Tesla M10] [10de:13bd] (rev a2)
+      Subsystem: NVIDIA Corporation Tesla M10 [10de:1160]
+      Kernel driver in use: vfio-pci
+      Kernel modules: nouveau
+</pre></div>
+</div>
+<p>IOMMU should be enabled at kernel level as well - we can verify that on the compute host:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span># docker exec -it nova_libvirt virt-host-validate | grep IOMMU
+QEMU: Checking for device assignment IOMMU support                         : PASS
+QEMU: Checking if IOMMU is enabled by kernel                               : PASS
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="openstack-nova-configuration">
+<h2>OpenStack Nova configuration<a class="headerlink" href="#openstack-nova-configuration" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="configure-nova-scheduler">
+<h3>Configure nova-scheduler<a class="headerlink" href="#configure-nova-scheduler" title="Permalink to this headline">¶</a></h3>
+<p>The nova-scheduler service must be configured to enable the <code class="docutils literal notranslate"><span class="pre">PciPassthroughFilter</span></code>
+To enable it add it to the list of filters to Kolla-Ansible configuration file:
+<code class="docutils literal notranslate"><span class="pre">etc/kayobe/kolla/config/nova.conf</span></code>, for instance:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">[</span><span class="nv">filter_scheduler</span><span class="p p-Indicator">]</span>
+<span class="l l-Scalar l-Scalar-Plain">available_filters = nova.scheduler.filters.all_filters</span>
+<span class="l l-Scalar l-Scalar-Plain">enabled_filters = AvailabilityZoneFilter, ComputeFilter, ComputeCapabilitiesFilter, ImagePropertiesFilter, ServerGroupAntiAffinityFilter, ServerGroupAffinityFilter, PciPassthroughFilter</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="configure-nova-compute">
+<h3>Configure nova-compute<a class="headerlink" href="#configure-nova-compute" title="Permalink to this headline">¶</a></h3>
+<p>Configuration can be applied in flexible ways using Kolla-Ansible’s
+methods for <a class="reference external" href="https://docs.openstack.org/kayobe/latest/configuration/reference/kolla-ansible.html#service-configuration">inventory-driven customisation of configuration</a>.
+The following configuration could be added to
+<code class="docutils literal notranslate"><span class="pre">etc/kayobe/kolla/config/nova/nova-compute.conf</span></code> to enable PCI
+passthrough of GPU devices for hosts in a group named <code class="docutils literal notranslate"><span class="pre">compute_gpu</span></code>.
+Again, the 4-digit PCI Vendor ID and Device ID extracted from <code class="docutils literal notranslate"><span class="pre">lspci</span>
+<span class="pre">-nn</span></code> can be used here to specify the GPU device(s).</p>
+<div class="highlight-jinja notranslate"><div class="highlight"><pre><span></span><span class="x">[pci]</span>
+<span class="cp">{%</span> <span class="k">raw</span> <span class="cp">%}</span>
+{% if inventory_hostname in groups[&#39;compute_gpu&#39;] %}
+# We could support multiple models of GPU.
+# This can be done more selectively using different inventory groups.
+# GPU models defined here:
+# NVidia Tesla V100 16GB
+# NVidia Tesla V100 32GB
+# NVidia Tesla P100 16GB
+passthrough_whitelist = [{ &quot;vendor_id&quot;:&quot;10de&quot;, &quot;product_id&quot;:&quot;1db4&quot; },
+                         { &quot;vendor_id&quot;:&quot;10de&quot;, &quot;product_id&quot;:&quot;1db5&quot; },
+                         { &quot;vendor_id&quot;:&quot;10de&quot;, &quot;product_id&quot;:&quot;15f8&quot; }]
+alias = { &quot;vendor_id&quot;:&quot;10de&quot;, &quot;product_id&quot;:&quot;1db4&quot;, &quot;device_type&quot;:&quot;type-PCI&quot;, &quot;name&quot;:&quot;gpu-v100-16&quot; }
+alias = { &quot;vendor_id&quot;:&quot;10de&quot;, &quot;product_id&quot;:&quot;1db5&quot;, &quot;device_type&quot;:&quot;type-PCI&quot;, &quot;name&quot;:&quot;gpu-v100-32&quot; }
+alias = { &quot;vendor_id&quot;:&quot;10de&quot;, &quot;product_id&quot;:&quot;15f8&quot;, &quot;device_type&quot;:&quot;type-PCI&quot;, &quot;name&quot;:&quot;gpu-p100&quot; }
+{% endif %}
+<span class="cp">{%</span> <span class="k">endraw</span> <span class="cp">%}</span><span class="x"></span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="configure-nova-api">
+<h3>Configure nova-api<a class="headerlink" href="#configure-nova-api" title="Permalink to this headline">¶</a></h3>
+<p>pci.alias also needs to be configured on the controller.
+This configuration should match the configuration found on the compute nodes.
+Add it to Kolla-Ansible configuration file:
+<code class="docutils literal notranslate"><span class="pre">etc/kayobe/kolla/config/nova/nova-api.conf</span></code>, for instance:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">[</span><span class="nv">pci</span><span class="p p-Indicator">]</span>
+<span class="l l-Scalar l-Scalar-Plain">alias = { &quot;vendor_id&quot;:&quot;10de&quot;, &quot;product_id&quot;:&quot;1db4&quot;, &quot;device_type&quot;:&quot;type-PCI&quot;, &quot;name&quot;:&quot;gpu-v100-16&quot; }</span>
+<span class="l l-Scalar l-Scalar-Plain">alias = { &quot;vendor_id&quot;:&quot;10de&quot;, &quot;product_id&quot;:&quot;1db5&quot;, &quot;device_type&quot;:&quot;type-PCI&quot;, &quot;name&quot;:&quot;gpu-v100-32&quot; }</span>
+<span class="l l-Scalar l-Scalar-Plain">alias = { &quot;vendor_id&quot;:&quot;10de&quot;, &quot;product_id&quot;:&quot;15f8&quot;, &quot;device_type&quot;:&quot;type-PCI&quot;, &quot;name&quot;:&quot;gpu-p100&quot; }</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="reconfigure-nova-service">
+<h3>Reconfigure nova service<a class="headerlink" href="#reconfigure-nova-service" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>kayobe overcloud service reconfigure --kolla-tags nova --kolla-skip-tags common --skip-prechecks
+</pre></div>
+</div>
+</div>
+<div class="section" id="configure-a-flavor">
+<h3>Configure a flavor<a class="headerlink" href="#configure-a-flavor" title="Permalink to this headline">¶</a></h3>
+<p>For example, to request two of the GPUs with alias gpu-p100</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>openstack flavor set m1.medium --property &quot;pci_passthrough:alias&quot;=&quot;gpu-p100:2&quot;
+</pre></div>
+</div>
+<p>This can be also defined in the acme-config repository:
+<a class="reference external" href="https://github.com/acme-openstack/acme-config.git">https://github.com/acme-openstack/acme-config.git</a></p>
+<p>add extra_specs to flavor in etc/acme-config/acme-config.yml:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">admin# cd ~/kayobe-env/src/acme-config</span>
+<span class="go">admin# vim etc/acme-config/acme-config.yml</span>
+
+<span class="go"> name: &quot;m1.medium&quot;</span>
+<span class="go"> ram: 4096</span>
+<span class="go"> disk: 40</span>
+<span class="go"> vcpus: 2</span>
+<span class="go"> extra_specs:</span>
+<span class="go">   &quot;pci_passthrough:alias&quot;: &quot;gpu-p100:2&quot;</span>
+</pre></div>
+</div>
+<p>Invoke configuration playbooks afterwards:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">admin# source ~/kayobe-env/src/kayobe-config/etc/kolla/public-openrc.sh</span>
+<span class="go">admin# source ~/kayobe-env/venvs/acme-config/bin/activate</span>
+<span class="go">admin# tools/acme-config --vault-password-file ~/vault-password</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="create-instance-with-gpu-passthrough">
+<h3>Create instance with GPU passthrough<a class="headerlink" href="#create-instance-with-gpu-passthrough" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>openstack server create --flavor m1.medium --image ubuntu2004 --wait test-pci
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="testing-gpu-in-a-guest-vm">
+<h2>Testing GPU in a Guest VM<a class="headerlink" href="#testing-gpu-in-a-guest-vm" title="Permalink to this headline">¶</a></h2>
+<p>The Nvidia drivers must be installed first.  For example, on an Ubuntu guest:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>sudo apt install nvidia-headless-440 nvidia-utils-440 nvidia-compute-utils-440
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">nvidia-smi</span></code> command will generate detailed output if the driver has loaded
+successfully.</p>
+</div>
+<div class="section" id="further-reference">
+<h2>Further Reference<a class="headerlink" href="#further-reference" title="Permalink to this headline">¶</a></h2>
+<p>For PCI Passthrough and GPUs in OpenStack:</p>
+<ul class="simple">
+<li><p>Consumer-grade GPUs: <a class="reference external" href="https://gist.github.com/claudiok/890ab6dfe76fa45b30081e58038a9215">https://gist.github.com/claudiok/890ab6dfe76fa45b30081e58038a9215</a></p></li>
+<li><p><a class="reference external" href="https://www.jimmdenton.com/gpu-offloading-openstack/">https://www.jimmdenton.com/gpu-offloading-openstack/</a></p></li>
+<li><p><a class="reference external" href="https://docs.openstack.org/nova/latest/admin/pci-passthrough.html">https://docs.openstack.org/nova/latest/admin/pci-passthrough.html</a></p></li>
+<li><p><a class="reference external" href="https://docs.openstack.org/nova/latest/admin/virtual-gpu.html">https://docs.openstack.org/nova/latest/admin/virtual-gpu.html</a> (vGPU only)</p></li>
+<li><p>Tesla models in OpenStack: <a class="reference external" href="https://egallen.com/openstack-nvidia-tesla-gpu-passthrough/">https://egallen.com/openstack-nvidia-tesla-gpu-passthrough/</a></p></li>
+<li><p><a class="reference external" href="https://wiki.archlinux.org/index.php/PCI_passthrough_via_OVMF">https://wiki.archlinux.org/index.php/PCI_passthrough_via_OVMF</a></p></li>
+<li><p><a class="reference external" href="https://www.kernel.org/doc/Documentation/Intel-IOMMU.txt">https://www.kernel.org/doc/Documentation/Intel-IOMMU.txt</a></p></li>
+<li><p><a class="reference external" href="https://access.redhat.com/documentation/en-us/red_hat_virtualization/4.1/html/installation_guide/appe-configuring_a_hypervisor_host_for_pci_passthrough">https://access.redhat.com/documentation/en-us/red_hat_virtualization/4.1/html/installation_guide/appe-configuring_a_hypervisor_host_for_pci_passthrough</a></p></li>
+<li><p><a class="reference external" href="https://www.gresearch.co.uk/article/utilising-the-openstack-placement-service-to-schedule-gpu-and-nvme-workloads-alongside-general-purpose-instances/">https://www.gresearch.co.uk/article/utilising-the-openstack-placement-service-to-schedule-gpu-and-nvme-workloads-alongside-general-purpose-instances/</a></p></li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">OpenStack Administration Guide</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="working_with_openstack.html">Working with OpenStack</a></li>
+<li class="toctree-l1"><a class="reference internal" href="working_with_kayobe.html">Working with Kayobe</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hardware_inventory_management.html">Hardware Inventory Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ceph_storage.html">Ceph Storage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="managing_users_and_projects.html">Managing Users and Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="operations_and_monitoring.html">Operations and Monitoring</a></li>
+<li class="toctree-l1"><a class="reference internal" href="customising_deployment.html">Customising the OpenStack Deployment</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Support for GPUs in OpenStack</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#bios-configuration-requirements">BIOS Configuration Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#hypervisor-configuration-requirements">Hypervisor Configuration Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#openstack-nova-configuration">OpenStack Nova configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#testing-gpu-in-a-guest-vm">Testing GPU in a Guest VM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#further-reference">Further Reference</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="customising_deployment.html" title="previous chapter">Customising the OpenStack Deployment</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, StackHPC Ltd.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/gpus_in_openstack.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

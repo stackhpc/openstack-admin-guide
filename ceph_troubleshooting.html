@@ -6,13 +6,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Inspecting a Ceph Block Device for a VM &#8212; OpenStack Administration Guide  documentation</title>
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
    
@@ -41,14 +40,14 @@ it is running on (an admin-level user can see this from <code class="docutils li
 </pre></div>
 </div>
 <p>Find the VM name using libvirt:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp gp-VirtualEnv">(nova-libvirt)</span><span class="gp">[root@|hypervisor_hostname| /]#</span> virsh list
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp gp-VirtualEnv">(nova-libvirt)</span><span class="gp">[root@|hypervisor_hostname| /]# </span>virsh list
 <span class="go"> Id    Name                State</span>
 <span class="go">------------------------------------</span>
 <span class="go"> 1     instance-00000001   running</span>
 </pre></div>
 </div>
 <p>Now inspect the properties of the VM using <code class="docutils literal notranslate"><span class="pre">virsh</span> <span class="pre">dumpxml</span></code>:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp gp-VirtualEnv">(nova-libvirt)</span><span class="gp">[root@|hypervisor_hostname| /]#</span> virsh dumpxml instance-00000001 <span class="p">|</span> grep rbd
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp gp-VirtualEnv">(nova-libvirt)</span><span class="gp">[root@|hypervisor_hostname| /]# </span>virsh dumpxml instance-00000001 <span class="p">|</span> grep rbd
 <span class="go">      &lt;source protocol=&#39;rbd&#39; name=&#39;|nova_rbd_pool|/51206278-e797-4153-b720-8255381228da_disk&#39;&gt;</span>
 </pre></div>
 </div>
@@ -66,12 +65,12 @@ block image:</p>
 libguestfs-tools and using the guestfish command:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">ceph# export LIBGUESTFS_BACKEND=direct</span>
 <span class="go">ceph# guestfish -a blob.qcow</span>
-<span class="gp">&gt;</span>&lt;fs&gt; run
+<span class="go">&gt;&lt;fs&gt; run</span>
 <span class="go"> 100% ⟦▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒⟧ 00:00</span>
-<span class="gp">&gt;</span>&lt;fs&gt; list-filesystems
+<span class="go">&gt;&lt;fs&gt; list-filesystems</span>
 <span class="go">/dev/sda1: ext4</span>
-<span class="gp">&gt;</span>&lt;fs&gt; mount /dev/sda1 /
-<span class="gp">&gt;</span>&lt;fs&gt; ls /
+<span class="go">&gt;&lt;fs&gt; mount /dev/sda1 /</span>
+<span class="go">&gt;&lt;fs&gt; ls /</span>
 <span class="go">bin</span>
 <span class="go">boot</span>
 <span class="go">dev</span>
@@ -92,7 +91,7 @@ libguestfs-tools and using the guestfish command:</p>
 <span class="go">tmp</span>
 <span class="go">usr</span>
 <span class="go">var</span>
-<span class="gp">&gt;</span>&lt;fs&gt; quit
+<span class="go">&gt;&lt;fs&gt; quit</span>
 </pre></div>
 </div>
 </div>
@@ -122,6 +121,8 @@ libguestfs-tools and using the guestfish command:</p>
 <li class="toctree-l1"><a class="reference internal" href="ceph_storage.html">Ceph Storage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="managing_users_and_projects.html">Managing Users and Projects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="operations_and_monitoring.html">Operations and Monitoring</a></li>
+<li class="toctree-l1"><a class="reference internal" href="customising_deployment.html">Customising the OpenStack Deployment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gpus_in_openstack.html">Support for GPUs in OpenStack</a></li>
 </ul>
 
 <div class="relations">
@@ -157,7 +158,7 @@ libguestfs-tools and using the guestfish command:</p>
       &copy;2020, StackHPC Ltd.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.4</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

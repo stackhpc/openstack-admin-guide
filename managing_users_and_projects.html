@@ -6,13 +6,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Managing Users and Projects &#8212; OpenStack Administration Guide  documentation</title>
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Operations and Monitoring" href="operations_and_monitoring.html" />
@@ -59,7 +58,7 @@ etc/acme-config/acme-config.yml:</p>
 <p>Example invocation:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">admin# source ~/kayobe-env/src/kayobe-config/etc/kolla/public-openrc.sh</span>
 <span class="go">admin# source ~/kayobe-env/venvs/acme-config/bin/activate</span>
-<span class="go">admin# tools/acme-config --vault-password-file ~/vault-password</span>
+<span class="go">admin# tools/acme-config -- --vault-password-file ~/vault-password</span>
 </pre></div>
 </div>
 <div class="section" id="deleting-users-and-projects">
@@ -98,6 +97,8 @@ manually removed.</p>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="operations_and_monitoring.html">Operations and Monitoring</a></li>
+<li class="toctree-l1"><a class="reference internal" href="customising_deployment.html">Customising the OpenStack Deployment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gpus_in_openstack.html">Support for GPUs in OpenStack</a></li>
 </ul>
 
 <div class="relations">
@@ -135,7 +136,7 @@ manually removed.</p>
       &copy;2020, StackHPC Ltd.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.4</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

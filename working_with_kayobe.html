@@ -6,13 +6,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Working with Kayobe &#8212; OpenStack Administration Guide  documentation</title>
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Hardware Inventory Management" href="hardware_inventory_management.html" />
@@ -128,7 +127,7 @@ to the OpenStack control plane.</p>
 <p>The seed is a virtual machine. The seed is called acme-seed (192.168.0.2). The main
 user account on the seed is the stack user.</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">kayobe# ssh -l stack 192.168.0.2</span>
-<span class="gp">[stack@seed ~]$</span> sudo docker ps
+<span class="gp">[stack@seed ~]$ </span>sudo docker ps
 <span class="go">CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                    NAMES</span>
 <span class="go">ed034742903b        registry:latest     &quot;/entrypoint.sh /etc…&quot;   2 months ago        Up 2 months         0.0.0.0:5000-&gt;5000/tcp   docker_registry</span>
 <span class="go">640221d53b0f        9355cba4a8cd        &quot;/sbin/init&quot;             2 months ago        Up 2 months                                  bifrost_deploy</span>
@@ -139,8 +138,8 @@ user account on the seed is the stack user.</p>
 <span id="id1"></span><h2>Accessing the Bifrost Service<a class="headerlink" href="#accessing-the-bifrost-service" title="Permalink to this headline">¶</a></h2>
 <p>From the seed host, the Bifrost container may be entered:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">seed# sudo docker exec -it bifrost_deploy /bin/bash</span>
-<span class="gp gp-VirtualEnv">(bifrost-deploy)</span><span class="gp">[root@seed bifrost-base]#</span> <span class="nb">source</span> env-vars
-<span class="gp gp-VirtualEnv">(bifrost-deploy)</span><span class="gp">[root@seed bifrost-base]#</span> openstack baremetal node list
+<span class="gp gp-VirtualEnv">(bifrost-deploy)</span><span class="gp">[root@seed bifrost-base]# </span><span class="nb">source</span> env-vars
+<span class="gp gp-VirtualEnv">(bifrost-deploy)</span><span class="gp">[root@seed bifrost-base]# </span>openstack baremetal node list
 </pre></div>
 </div>
 </div>
@@ -179,6 +178,8 @@ user account on the seed is the stack user.</p>
 <li class="toctree-l1"><a class="reference internal" href="ceph_storage.html">Ceph Storage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="managing_users_and_projects.html">Managing Users and Projects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="operations_and_monitoring.html">Operations and Monitoring</a></li>
+<li class="toctree-l1"><a class="reference internal" href="customising_deployment.html">Customising the OpenStack Deployment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gpus_in_openstack.html">Support for GPUs in OpenStack</a></li>
 </ul>
 
 <div class="relations">
@@ -216,7 +217,7 @@ user account on the seed is the stack user.</p>
       &copy;2020, StackHPC Ltd.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.4</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

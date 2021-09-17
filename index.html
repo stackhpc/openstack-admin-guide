@@ -6,13 +6,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Acme OpenStack Administration Guide &#8212; OpenStack Administration Guide  documentation</title>
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Introduction" href="introduction.html" />
@@ -71,6 +70,7 @@ over time as Acme’s administration procedures evolve.</p>
 <li class="toctree-l2"><a class="reference internal" href="hardware_inventory_management.html#enrolling-new-hypervisors">Enrolling New Hypervisors</a></li>
 <li class="toctree-l2"><a class="reference internal" href="hardware_inventory_management.html#replacing-a-failing-hypervisor">Replacing a Failing Hypervisor</a></li>
 <li class="toctree-l2"><a class="reference internal" href="hardware_inventory_management.html#evacuating-all-instances">Evacuating all instances</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hardware_inventory_management.html#detect-hardware-differences-with-cardiff">Detect hardware differences with cardiff</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="ceph_storage.html">Ceph Storage</a></li>
@@ -89,6 +89,20 @@ over time as Acme’s administration procedures evolve.</p>
 <li class="toctree-l2"><a class="reference internal" href="operations_and_monitoring.html#control-plane-power-on-procedure">Control Plane Power on Procedure</a></li>
 <li class="toctree-l2"><a class="reference internal" href="operations_and_monitoring.html#software-updates">Software Updates</a></li>
 <li class="toctree-l2"><a class="reference internal" href="operations_and_monitoring.html#troubleshooting">Troubleshooting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="operations_and_monitoring.html#cleanup-procedures">Cleanup Procedures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="operations_and_monitoring.html#elasticsearch-indexes-retention">Elasticsearch indexes retention</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="customising_deployment.html">Customising the OpenStack Deployment</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="customising_deployment.html#horizon-customisations">Horizon customisations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gpus_in_openstack.html">Support for GPUs in OpenStack</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gpus_in_openstack.html#bios-configuration-requirements">BIOS Configuration Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gpus_in_openstack.html#hypervisor-configuration-requirements">Hypervisor Configuration Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gpus_in_openstack.html#openstack-nova-configuration">OpenStack Nova configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gpus_in_openstack.html#testing-gpu-in-a-guest-vm">Testing GPU in a Guest VM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gpus_in_openstack.html#further-reference">Further Reference</a></li>
 </ul>
 </li>
 </ul>
@@ -128,6 +142,8 @@ over time as Acme’s administration procedures evolve.</p>
 <li class="toctree-l1"><a class="reference internal" href="ceph_storage.html">Ceph Storage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="managing_users_and_projects.html">Managing Users and Projects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="operations_and_monitoring.html">Operations and Monitoring</a></li>
+<li class="toctree-l1"><a class="reference internal" href="customising_deployment.html">Customising the OpenStack Deployment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gpus_in_openstack.html">Support for GPUs in OpenStack</a></li>
 </ul>
 
 <div class="relations">
@@ -164,7 +180,7 @@ over time as Acme’s administration procedures evolve.</p>
       &copy;2020, StackHPC Ltd.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.4</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

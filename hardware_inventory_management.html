@@ -6,13 +6,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Hardware Inventory Management &#8212; OpenStack Administration Guide  documentation</title>
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Ceph Storage" href="ceph_storage.html" />
@@ -98,6 +97,16 @@ the correct groups, import them in Kayobe’s inventory with:</p>
 <li><p>It may be necessary to reinspect the node if hardware was changed (this will require deprovisioning and reprovisioning)</p></li>
 <li><p>If the node was replaced or reprovisioned, follow <a class="reference internal" href="#enrolling-new-hypervisors"><span class="std std-ref">Enrolling New Hypervisors</span></a></p></li>
 </ul>
+<p>To deprovision an existing hypervisor, run:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">kayobe# kayobe overcloud deprovision --limit comp0</span>
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Always use <code class="docutils literal notranslate"><span class="pre">--limit</span></code> with <code class="docutils literal notranslate"><span class="pre">kayobe</span> <span class="pre">overcloud</span> <span class="pre">deprovision</span></code> on a production
+system. Running this command without a limit will deprovision all overcloud
+hosts.</p>
+</div>
 </div>
 <div class="section" id="evacuating-all-instances">
 <span id="id2"></span><h2>Evacuating all instances<a class="headerlink" href="#evacuating-all-instances" title="Permalink to this headline">¶</a></h2>
@@ -141,7 +150,7 @@ migrate as the process needs manual confirmation. You can do this with:</p>
 <span id="set-bifrost-maintenance-mode"></span><h3>Set maintenance mode on a node in Bifrost<a class="headerlink" href="#set-maintenance-mode-on-a-node-in-bifrost" title="Permalink to this headline">¶</a></h3>
 <p>For example, to put <code class="docutils literal notranslate"><span class="pre">comp0</span></code> into maintenance:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">seed# sudo docker exec -it bifrost_deploy /bin/bash</span>
-<span class="gp gp-VirtualEnv">(bifrost-deploy)</span><span class="gp">[root@seed bifrost-base]#</span> <span class="nv">OS_CLOUD</span><span class="o">=</span>bifrost openstack baremetal node maintenance <span class="nb">set</span> comp0
+<span class="gp gp-VirtualEnv">(bifrost-deploy)</span><span class="gp">[root@seed bifrost-base]# </span><span class="nv">OS_CLOUD</span><span class="o">=</span>bifrost openstack baremetal node maintenance <span class="nb">set</span> comp0
 </pre></div>
 </div>
 </div>
@@ -149,10 +158,102 @@ migrate as the process needs manual confirmation. You can do this with:</p>
 <span id="unset-bifrost-maintenance-mode"></span><h3>Unset maintenance mode on a node in Bifrost<a class="headerlink" href="#unset-maintenance-mode-on-a-node-in-bifrost" title="Permalink to this headline">¶</a></h3>
 <p>For example, to take <code class="docutils literal notranslate"><span class="pre">comp0</span></code> out of maintenance:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">seed# sudo docker exec -it bifrost_deploy /bin/bash</span>
-<span class="gp gp-VirtualEnv">(bifrost-deploy)</span><span class="gp">[root@seed bifrost-base]#</span> <span class="nv">OS_CLOUD</span><span class="o">=</span>bifrost openstack baremetal node maintenance <span class="nb">unset</span> comp0
+<span class="gp gp-VirtualEnv">(bifrost-deploy)</span><span class="gp">[root@seed bifrost-base]# </span><span class="nv">OS_CLOUD</span><span class="o">=</span>bifrost openstack baremetal node maintenance <span class="nb">unset</span> comp0
 </pre></div>
 </div>
 </div>
+</div>
+<div class="section" id="detect-hardware-differences-with-cardiff">
+<h2>Detect hardware differences with cardiff<a class="headerlink" href="#detect-hardware-differences-with-cardiff" title="Permalink to this headline">¶</a></h2>
+<p>Hardware information captured during the Ironic introspection process can be
+analysed to detect hardware differences, such as mismatches in firmware
+versions or missing storage devices. The cardiff tool can be used for this
+purpose. It was developed as part of the <a class="reference external" href="https://pypi.org/project/hardware/">Python hardware package</a>, but was removed from release 0.25. The
+<a class="reference external" href="https://github.com/stackhpc/mungetout/">mungetout utility</a> can be used to
+convert Ironic introspection data into a format that can be fed to cardiff.</p>
+<p>The following steps are used to install cardiff and mungetout:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">kayobe# virtualenv ~/kayobe-env/venvs/cardiff</span>
+<span class="go">kayobe# source ~/kayobe-env/venvs/cardiff/bin/activate</span>
+<span class="go">kayobe# pip install -U pip</span>
+<span class="go">kayobe# pip install git+https://github.com/stackhpc/mungetout.git@feature/kayobe-introspection-save</span>
+<span class="go">kayobe# pip install &#39;hardware==0.24&#39;</span>
+</pre></div>
+</div>
+<p>Extract introspection data from Bifrost with Kayobe. JSON files will be created
+into <code class="docutils literal notranslate"><span class="pre">${KAYOBE_CONFIG_PATH}/overcloud-introspection-data</span></code>:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">kayobe# source ~/kayobe-env/venvs/kayobe/bin/activate</span>
+<span class="go">kayobe# source ~/kayobe-env/src/kayobe-config/kayobe-env</span>
+<span class="go">kayobe# kayobe overcloud introspection data save</span>
+</pre></div>
+</div>
+<p>The cardiff utility can only work if the <code class="docutils literal notranslate"><span class="pre">extra-hardware</span></code> collector was used,
+which populates a <code class="docutils literal notranslate"><span class="pre">data</span></code> key in each node JSON file. Remove any that are
+missing this key:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">kayobe# for file in ~/kayobe-env/src/kayobe-config/overcloud-introspection-data/*; do if [[ $(jq .data $file) == &#39;null&#39; ]]; then rm $file; fi; done</span>
+</pre></div>
+</div>
+<p>Cardiff identifies each unique system by its serial number. However, some
+high-density multi-node systems may report the same serial number for multiple
+systems (this has been seen on Supermicro hardware). The following script will
+replace the serial number used by Cardiff by the node name captured by LLDP on
+the first network interface. If this node name is missing, it will append a
+short UUID string to the end of the serial number.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
+
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s2">&quot;r+&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">node</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+
+    <span class="n">serial</span> <span class="o">=</span> <span class="n">node</span><span class="p">[</span><span class="s2">&quot;inventory&quot;</span><span class="p">][</span><span class="s2">&quot;system_vendor&quot;</span><span class="p">][</span><span class="s2">&quot;serial_number&quot;</span><span class="p">]</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">new_serial</span> <span class="o">=</span> <span class="n">node</span><span class="p">[</span><span class="s2">&quot;all_interfaces&quot;</span><span class="p">][</span><span class="s2">&quot;eth0&quot;</span><span class="p">][</span><span class="s2">&quot;lldp_processed&quot;</span><span class="p">][</span><span class="s2">&quot;switch_port_description&quot;</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="n">new_serial</span> <span class="o">=</span> <span class="n">serial</span> <span class="o">+</span> <span class="s2">&quot;-&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">())[:</span><span class="mi">8</span><span class="p">]</span>
+
+    <span class="n">new_data</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">node</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">e</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;system&quot;</span> <span class="ow">and</span> <span class="n">e</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;product&quot;</span> <span class="ow">and</span> <span class="n">e</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;serial&quot;</span><span class="p">:</span>
+            <span class="n">new_data</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s2">&quot;system&quot;</span><span class="p">,</span> <span class="s2">&quot;product&quot;</span><span class="p">,</span> <span class="s2">&quot;serial&quot;</span><span class="p">,</span> <span class="n">new_serial</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">new_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+    <span class="n">node</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_data</span>
+
+    <span class="n">f</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">node</span><span class="p">))</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">truncate</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Apply this Python script on all generated JSON files:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">kayobe# for file in ~/src/kayobe-config/overcloud-introspection-data/*; do python update-serial.py $file; done</span>
+</pre></div>
+</div>
+<p>Convert files into the format supported by cardiff:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">source ~/kayobe-env/venvs/cardiff/bin/activate</span>
+<span class="go">mkdir -p ~/kayobe-env/cardiff-workspace</span>
+<span class="go">rm -rf ~/kayobe-env/cardiff-workspace/extra*</span>
+<span class="go">cd ~/kayobe-env/cardiff-workspace/</span>
+<span class="go">m2-extract ~/kayobe-env/src/kayobe-config/overcloud-introspection-data/*.json</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">m2-extract</span></code> utility needs to work in an empty folder. Delete the
+<code class="docutils literal notranslate"><span class="pre">extra-hardware</span></code>, <code class="docutils literal notranslate"><span class="pre">extra-hardware-filtered</span></code> and <code class="docutils literal notranslate"><span class="pre">extra-hardware-json</span></code>
+folders before executing it again.</p>
+</div>
+<p>We are now ready to compare node hardware. The following command will compare
+all known nodes, which may include multiple generations of hardware. Replace
+<code class="docutils literal notranslate"><span class="pre">*.eval</span></code> by a stricter globbing expression or by a list of files to compare a
+smaller group.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">hardware-cardiff -I ipmi -p &#39;extra-hardware/*.eval&#39;</span>
+</pre></div>
+</div>
+<p>Since the output can be verbose, it is recommended to pipe it to a terminal
+pager or redirect it to a file. Cardiff will display groups of identical nodes
+based on various hardware characteristics, such as system model, BIOS version,
+CPU or network interface information, or benchmark results gathered by the
+<code class="docutils literal notranslate"><span class="pre">extra-hardware</span></code> collector during the initial introspection process.</p>
 </div>
 </div>
 
@@ -182,11 +283,14 @@ migrate as the process needs manual confirmation. You can do this with:</p>
 <li class="toctree-l2"><a class="reference internal" href="#enrolling-new-hypervisors">Enrolling New Hypervisors</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#replacing-a-failing-hypervisor">Replacing a Failing Hypervisor</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#evacuating-all-instances">Evacuating all instances</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#detect-hardware-differences-with-cardiff">Detect hardware differences with cardiff</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="ceph_storage.html">Ceph Storage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="managing_users_and_projects.html">Managing Users and Projects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="operations_and_monitoring.html">Operations and Monitoring</a></li>
+<li class="toctree-l1"><a class="reference internal" href="customising_deployment.html">Customising the OpenStack Deployment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gpus_in_openstack.html">Support for GPUs in OpenStack</a></li>
 </ul>
 
 <div class="relations">
@@ -224,7 +328,7 @@ migrate as the process needs manual confirmation. You can do this with:</p>
       &copy;2020, StackHPC Ltd.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.4</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

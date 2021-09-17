@@ -47,13 +47,20 @@ To see where all virtual machines are running on the hypervisors:
 
    admin# openstack server list --all-projects --long
 
-To move a virtual machine from one hypervisor to another, for example to
+To move a virtual machine with shared storage or booted from volume from one hypervisor to another, for example to
 |hypervisor_hostname|:
 
 .. code-block:: console
    :substitutions:
 
    admin# openstack --os-compute-api-version 2.30 server migrate --live-migration --host |hypervisor_hostname| 6a35592c-5a7e-4da3-9ab9-6765345641cb
+
+To move a virtual machine with local disks:
+
+.. code-block:: console
+   :substitutions:
+
+   admin# openstack --os-compute-api-version 2.30 server migrate --live-migration --block-migration --host |hypervisor_hostname| 6a35592c-5a7e-4da3-9ab9-6765345641cb
 
 OpenStack Reconfiguration
 =========================
@@ -547,7 +554,7 @@ with the following command:
 
 .. code-block:: console
 
-   kayobe# kayobe kolla ansible run mariadb_recovery
+   kayobe# kayobe overcloud database recover
 
 Ansible Control Host
 --------------------
@@ -654,3 +661,44 @@ To boot an instance on a specific hypervisor, for example on
    :substitutions:
 
    admin# openstack server create --flavor |flavor_name| --network |network_name| --key-name <key> --image CentOS8.2 --availability-zone nova::|hypervisor_hostname| vm-name
+
+Cleanup Procedures
+==================
+
+OpenStack services can sometimes fail to remove all resources correctly. This
+is the case with Magnum, which fails to clean up users in its domain after
+clusters are deleted. `A patch has been submitted to stable branches
+<https://review.opendev.org/#/q/Ibadd5b57fe175bb0b100266e2dbcc2e1ea4efcf9>`__.
+Until this fix becomes available, if Magnum is in use, administrators can
+perform the following cleanup procedure regularly:
+
+.. code-block:: console
+
+   admin# for user in $(openstack user list --domain magnum -f value -c Name | grep -v magnum_trustee_domain_admin); do
+            if openstack coe cluster list -c uuid -f value | grep -q $(echo $user | sed 's/_[0-9a-f]*$//'); then
+              echo "$user still in use, not deleting"
+            else
+              openstack user delete --domain magnum $user
+            fi
+          done
+
+Elasticsearch indexes retention
+===============================
+To enable and alter default rotation values for Elasticsearch Curator edit ``${KAYOBE_CONFIG_PATH}/kolla/globals.yml`` - This applies both to Monasca and Central Logging configurations.
+
+.. code-block:: console
+
+   # Allow Elasticsearch Curator to apply a retention policy to logs
+   enable_elasticsearch_curator: true
+   # Duration after which index is closed
+   elasticsearch_curator_soft_retention_period_days: 90
+   # Duration after which index is deleted
+   elasticsearch_curator_hard_retention_period_days: 180
+
+Reconfigure elasticsearch with new values:
+
+.. code-block:: console
+
+   kayobe overcloud service reconfigure --kolla-tags elasticsearch --kolla-skip-tags common --skip-precheck
+
+For more information see `upstream documentation <https://docs.openstack.org/kolla-ansible/ussuri/reference/logging-and-monitoring/central-logging-guide.html#curator>`__

@@ -6,15 +6,15 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Operations and Monitoring &#8212; OpenStack Administration Guide  documentation</title>
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Customising the OpenStack Deployment" href="customising_deployment.html" />
     <link rel="prev" title="Managing Users and Projects" href="managing_users_and_projects.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
@@ -68,9 +68,13 @@ the <code class="docutils literal notranslate"><span class="pre">monasca_control
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">admin# openstack server list --all-projects --long</span>
 </pre></div>
 </div>
-<p>To move a virtual machine from one hypervisor to another, for example to
+<p>To move a virtual machine with shared storage or booted from volume from one hypervisor to another, for example to
 <code class="docutils literal notranslate"><span class="pre">comp0</span></code>:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">admin# openstack --os-compute-api-version 2.30 server migrate --live-migration --host comp0 6a35592c-5a7e-4da3-9ab9-6765345641cb</span>
+</pre></div>
+</div>
+<p>To move a virtual machine with local disks:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">admin# openstack --os-compute-api-version 2.30 server migrate --live-migration --block-migration --host comp0 6a35592c-5a7e-4da3-9ab9-6765345641cb</span>
 </pre></div>
 </div>
 </div>
@@ -359,7 +363,7 @@ a time to avoid the clustered components losing quorum.</p>
 <div class="section" id="checking-galera-state">
 <h4>Checking Galera state<a class="headerlink" href="#checking-galera-state" title="Permalink to this headline">¶</a></h4>
 <p>On each controller perform the following:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">[stack@ctrl0 ~]$</span> docker <span class="nb">exec</span> -i mariadb mysql -u root -p -e <span class="s2">&quot;SHOW STATUS LIKE &#39;wsrep_local_state_comment&#39;&quot;</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">[stack@ctrl0 ~]$ </span>docker <span class="nb">exec</span> -i mariadb mysql -u root -p -e <span class="s2">&quot;SHOW STATUS LIKE &#39;wsrep_local_state_comment&#39;&quot;</span>
 <span class="go">Variable_name   Value</span>
 <span class="go">wsrep_local_state_comment       Synced</span>
 </pre></div>
@@ -373,7 +377,7 @@ a time to avoid the clustered components losing quorum.</p>
 <div class="section" id="checking-rabbitmq">
 <h4>Checking RabbitMQ<a class="headerlink" href="#checking-rabbitmq" title="Permalink to this headline">¶</a></h4>
 <p>RabbitMQ health is determined using the command <code class="docutils literal notranslate"><span class="pre">rabbitmqctl</span> <span class="pre">cluster_status</span></code>:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">[stack@ctrl0 ~]$</span> docker <span class="nb">exec</span> rabbitmq rabbitmqctl cluster_status
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">[stack@ctrl0 ~]$ </span>docker <span class="nb">exec</span> rabbitmq rabbitmqctl cluster_status
 <span class="go">Cluster status of node rabbit@ctrl0 ...</span>
 <span class="go">[{nodes,[{disc,[&#39;rabbit@ctrl0&#39;,&#39;rabbit@ctrl1&#39;,</span>
 <span class="go">                &#39;rabbit@ctr2&#39;]}]},</span>
@@ -390,7 +394,7 @@ a time to avoid the clustered components losing quorum.</p>
 <div class="section" id="checking-keepalived">
 <h4>Checking Keepalived<a class="headerlink" href="#checking-keepalived" title="Permalink to this headline">¶</a></h4>
 <p>On (for example) three controllers:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">[stack@ctrl0 ~]$</span> docker logs keepalived
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">[stack@ctrl0 ~]$ </span>docker logs keepalived
 </pre></div>
 </div>
 <p>Two instances should show:</p>
@@ -466,7 +470,7 @@ following order:</p>
 <p>If all of the servers were shut down at the same time, it is necessary to run a
 script to recover the database once they have all started up. This can be done
 with the following command:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">kayobe# kayobe kolla ansible run mariadb_recovery</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">kayobe# kayobe overcloud database recover</span>
 </pre></div>
 </div>
 </div>
@@ -553,6 +557,40 @@ description.</p>
 </div>
 </div>
 </div>
+<div class="section" id="cleanup-procedures">
+<h2>Cleanup Procedures<a class="headerlink" href="#cleanup-procedures" title="Permalink to this headline">¶</a></h2>
+<p>OpenStack services can sometimes fail to remove all resources correctly. This
+is the case with Magnum, which fails to clean up users in its domain after
+clusters are deleted. <a class="reference external" href="https://review.opendev.org/#/q/Ibadd5b57fe175bb0b100266e2dbcc2e1ea4efcf9">A patch has been submitted to stable branches</a>.
+Until this fix becomes available, if Magnum is in use, administrators can
+perform the following cleanup procedure regularly:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">admin# for user in $(openstack user list --domain magnum -f value -c Name | grep -v magnum_trustee_domain_admin); do</span>
+<span class="go">         if openstack coe cluster list -c uuid -f value | grep -q $(echo $user | sed &#39;s/_[0-9a-f]*$//&#39;); then</span>
+<span class="go">           echo &quot;$user still in use, not deleting&quot;</span>
+<span class="go">         else</span>
+<span class="go">           openstack user delete --domain magnum $user</span>
+<span class="go">         fi</span>
+<span class="go">       done</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="elasticsearch-indexes-retention">
+<h2>Elasticsearch indexes retention<a class="headerlink" href="#elasticsearch-indexes-retention" title="Permalink to this headline">¶</a></h2>
+<p>To enable and alter default rotation values for Elasticsearch Curator edit <code class="docutils literal notranslate"><span class="pre">${KAYOBE_CONFIG_PATH}/kolla/globals.yml</span></code> - This applies both to Monasca and Central Logging configurations.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp"># </span>Allow Elasticsearch Curator to apply a retention policy to logs
+<span class="go">enable_elasticsearch_curator: true</span>
+<span class="gp"># </span>Duration after which index is closed
+<span class="go">elasticsearch_curator_soft_retention_period_days: 90</span>
+<span class="gp"># </span>Duration after which index is deleted
+<span class="go">elasticsearch_curator_hard_retention_period_days: 180</span>
+</pre></div>
+</div>
+<p>Reconfigure elasticsearch with new values:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">kayobe overcloud service reconfigure --kolla-tags elasticsearch --kolla-skip-tags common --skip-precheck</span>
+</pre></div>
+</div>
+<p>For more information see <a class="reference external" href="https://docs.openstack.org/kolla-ansible/ussuri/reference/logging-and-monitoring/central-logging-guide.html#curator">upstream documentation</a></p>
+</div>
 </div>
 
 
@@ -590,8 +628,12 @@ description.</p>
 <li class="toctree-l2"><a class="reference internal" href="#control-plane-power-on-procedure">Control Plane Power on Procedure</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#software-updates">Software Updates</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cleanup-procedures">Cleanup Procedures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#elasticsearch-indexes-retention">Elasticsearch indexes retention</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="customising_deployment.html">Customising the OpenStack Deployment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gpus_in_openstack.html">Support for GPUs in OpenStack</a></li>
 </ul>
 
 <div class="relations">
@@ -599,6 +641,7 @@ description.</p>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
       <li>Previous: <a href="managing_users_and_projects.html" title="previous chapter">Managing Users and Projects</a></li>
+      <li>Next: <a href="customising_deployment.html" title="next chapter">Customising the OpenStack Deployment</a></li>
   </ul></li>
 </ul>
 </div>
@@ -628,7 +671,7 @@ description.</p>
       &copy;2020, StackHPC Ltd.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.4</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

@@ -6,13 +6,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Introduction &#8212; OpenStack Administration Guide  documentation</title>
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Working with OpenStack" href="working_with_openstack.html" />
@@ -80,89 +79,89 @@ virtualenv or installed in the OS libraries).</p>
 <div class="section" id="glossary-of-terms">
 <h2>Glossary of Terms<a class="headerlink" href="#glossary-of-terms" title="Permalink to this headline">¶</a></h2>
 <dl class="glossary simple">
-<dt id="term-Cinder">Cinder</dt><dd><p>OpenStack’s block-based storage service. Cinder implements volumes, which
+<dt id="term-Cinder">Cinder<a class="headerlink" href="#term-Cinder" title="Permalink to this term">¶</a></dt><dd><p>OpenStack’s block-based storage service. Cinder implements volumes, which
 are persistent data storage that appears in VMs as block devices.
 <a class="reference external" href="https://docs.openstack.org/cinder/latest/">https://docs.openstack.org/cinder/latest/</a></p>
 </dd>
-<dt id="term-ECMP">ECMP</dt><dd><p>Equal-Cost Multi-Path routing - a IP-based protocol for enabling traffic
+<dt id="term-ECMP">ECMP<a class="headerlink" href="#term-ECMP" title="Permalink to this term">¶</a></dt><dd><p>Equal-Cost Multi-Path routing - a IP-based protocol for enabling traffic
 between two destinations across multiple paths in the network fabric.</p>
 </dd>
-<dt id="term-Floating-IP">Floating IP</dt><dd><p>An external IP address that is associated with a VM (although the VM is
+<dt id="term-Floating-IP">Floating IP<a class="headerlink" href="#term-Floating-IP" title="Permalink to this term">¶</a></dt><dd><p>An external IP address that is associated with a VM (although the VM is
 not aware of it). A floating IP enables in-bound access to a VM that is
 on a private network with a router connecting it to the external network.
 VMs on a private network can initiate external network access without a
 floating IP.</p>
 </dd>
-<dt id="term-Glance">Glance</dt><dd><p>OpenStack’s image service. Glance manages software images for compute
+<dt id="term-Glance">Glance<a class="headerlink" href="#term-Glance" title="Permalink to this term">¶</a></dt><dd><p>OpenStack’s image service. Glance manages software images for compute
 instances. <a class="reference external" href="https://docs.openstack.org/glance/latest/">https://docs.openstack.org/glance/latest/</a></p>
 </dd>
-<dt id="term-GRE">GRE</dt><dd><p>Generic Routing Encapsulation - A common tunneling protocol for
+<dt id="term-GRE">GRE<a class="headerlink" href="#term-GRE" title="Permalink to this term">¶</a></dt><dd><p>Generic Routing Encapsulation - A common tunneling protocol for
 transmission of data in a segmented network.</p>
 </dd>
-<dt id="term-HA">HA</dt><dd><p>High Availability - The ability for a system to continue to provide
+<dt id="term-HA">HA<a class="headerlink" href="#term-HA" title="Permalink to this term">¶</a></dt><dd><p>High Availability - The ability for a system to continue to provide
 service in the presence of hardware or software component failure.</p>
 </dd>
-<dt id="term-HAProxy">HAProxy</dt><dd><p>A load-balancer for TCP connections that maintains a VIP and acts as a
+<dt id="term-HAProxy">HAProxy<a class="headerlink" href="#term-HAProxy" title="Permalink to this term">¶</a></dt><dd><p>A load-balancer for TCP connections that maintains a VIP and acts as a
 single endpoint for multiple instances of OpenStack API services.
 <a class="reference external" href="http://www.haproxy.org/">http://www.haproxy.org/</a></p>
 </dd>
-<dt id="term-Horizon">Horizon</dt><dd><p>OpenStack’s web user interface.
+<dt id="term-Horizon">Horizon<a class="headerlink" href="#term-Horizon" title="Permalink to this term">¶</a></dt><dd><p>OpenStack’s web user interface.
 <a class="reference external" href="https://docs.openstack.org/horizon/latest/">https://docs.openstack.org/horizon/latest/</a></p>
 </dd>
-<dt id="term-IPMI">IPMI</dt><dd><p>Intelligent Platform Management Interface - Interface for providing
+<dt id="term-IPMI">IPMI<a class="headerlink" href="#term-IPMI" title="Permalink to this term">¶</a></dt><dd><p>Intelligent Platform Management Interface - Interface for providing
 remote control and monitoring of a server’s baseboard components.</p>
 </dd>
-<dt id="term-Kayobe">Kayobe</dt><dd><p>An Ansible-driven OpenStack deployment framework capable of taking bare
+<dt id="term-Kayobe">Kayobe<a class="headerlink" href="#term-Kayobe" title="Permalink to this term">¶</a></dt><dd><p>An Ansible-driven OpenStack deployment framework capable of taking bare
 metal infrastructure through to post-deployment customization.</p>
 </dd>
-<dt id="term-Keystone">Keystone</dt><dd><p>OpenStack’s authentication, authorization and identity management
+<dt id="term-Keystone">Keystone<a class="headerlink" href="#term-Keystone" title="Permalink to this term">¶</a></dt><dd><p>OpenStack’s authentication, authorization and identity management
 service. All other OpenStack services authenticate user requests by
 validating cryptographic tokens passed by the requester.
 <a class="reference external" href="https://docs.openstack.org/keystone/latest/">https://docs.openstack.org/keystone/latest/</a></p>
 </dd>
-<dt id="term-Kolla">Kolla</dt><dd><p>An OpenStack project for encapsulating all OpenStack services in Docker
+<dt id="term-Kolla">Kolla<a class="headerlink" href="#term-Kolla" title="Permalink to this term">¶</a></dt><dd><p>An OpenStack project for encapsulating all OpenStack services in Docker
 containers. <a class="reference external" href="https://docs.openstack.org/kolla/latest/">https://docs.openstack.org/kolla/latest/</a></p>
 </dd>
-<dt id="term-MLAG">MLAG</dt><dd><p>Multi-Chassis Link Aggregate - a method of providing multi-pathing and
+<dt id="term-MLAG">MLAG<a class="headerlink" href="#term-MLAG" title="Permalink to this term">¶</a></dt><dd><p>Multi-Chassis Link Aggregate - a method of providing multi-pathing and
 multi-switch redundancy in layer-2 networks.</p>
 </dd>
-<dt id="term-Monasca">Monasca</dt><dd><p>OpenStack’s monitoring service (“Monitoring as a Service at Scale”).
+<dt id="term-Monasca">Monasca<a class="headerlink" href="#term-Monasca" title="Permalink to this term">¶</a></dt><dd><p>OpenStack’s monitoring service (“Monitoring as a Service at Scale”).
 Logging, telemetry and events from the infrastructure, control plane and
 user projects can be submitted and processed by Monasca.
 <a class="reference external" href="https://docs.openstack.org/monasca-api/latest/">https://docs.openstack.org/monasca-api/latest/</a></p>
 </dd>
-<dt id="term-Neutron">Neutron</dt><dd><p>OpenStack’s networking service.
+<dt id="term-Neutron">Neutron<a class="headerlink" href="#term-Neutron" title="Permalink to this term">¶</a></dt><dd><p>OpenStack’s networking service.
 <a class="reference external" href="https://docs.openstack.org/neutron/latest/">https://docs.openstack.org/neutron/latest/</a></p>
 </dd>
-<dt id="term-Nova">Nova</dt><dd><p>OpenStack’s compute service. Nova is the scheduler for VMs in OpenStack
+<dt id="term-Nova">Nova<a class="headerlink" href="#term-Nova" title="Permalink to this term">¶</a></dt><dd><p>OpenStack’s compute service. Nova is the scheduler for VMs in OpenStack
 and the manager of the compute hypervisors.
 <a class="reference external" href="https://docs.openstack.org/nova/latest/">https://docs.openstack.org/nova/latest/</a></p>
 </dd>
-<dt id="term-OIDC">OIDC</dt><dd><p>OpenID Connect - a protocol for federated authentication and identity
+<dt id="term-OIDC">OIDC<a class="headerlink" href="#term-OIDC" title="Permalink to this term">¶</a></dt><dd><p>OpenID Connect - a protocol for federated authentication and identity
 management.</p>
 </dd>
-<dt id="term-OSPF">OSPF</dt><dd><p>Open Shortest Path First - a routing protocol for IPv4 and IPv6 for
+<dt id="term-OSPF">OSPF<a class="headerlink" href="#term-OSPF" title="Permalink to this term">¶</a></dt><dd><p>Open Shortest Path First - a routing protocol for IPv4 and IPv6 for
 managing efficient paths between IP routers. OSPF is used in conjunction
 with ECMP to maintain multi-path route tables across an IP fabric.</p>
 </dd>
-<dt id="term-REST">REST</dt><dd><p>Representational State Transfer - a software paradigm in which no state
+<dt id="term-REST">REST<a class="headerlink" href="#term-REST" title="Permalink to this term">¶</a></dt><dd><p>Representational State Transfer - a software paradigm in which no state
 is carried between successive API calls. This stateless model enables
 successive API requests to be serviced by different processes, and
 simplifies the process of scaling OpenStack control plane services.</p>
 </dd>
-<dt id="term-SDN">SDN</dt><dd><p>Software Defined Networking - Technology that facilitates the
+<dt id="term-SDN">SDN<a class="headerlink" href="#term-SDN" title="Permalink to this term">¶</a></dt><dd><p>Software Defined Networking - Technology that facilitates the
 programmatic control of network configuration and monitoring.</p>
 </dd>
-<dt id="term-VIP">VIP</dt><dd><p>Virtual IP address - a method for implementing active-passive failover in
+<dt id="term-VIP">VIP<a class="headerlink" href="#term-VIP" title="Permalink to this term">¶</a></dt><dd><p>Virtual IP address - a method for implementing active-passive failover in
 which multiple services on different nodes share a common IP which can be
 transferred between them in the event of failover.</p>
 </dd>
-<dt id="term-VXLAN">VXLAN</dt><dd><p>Virtual eXtensible LAN - a tunneling protocol used for tenant overlay
+<dt id="term-VXLAN">VXLAN<a class="headerlink" href="#term-VXLAN" title="Permalink to this term">¶</a></dt><dd><p>Virtual eXtensible LAN - a tunneling protocol used for tenant overlay
 networks. VXLAN is more portable and imposes fewer networking
 requirements than VLAN-based overlay networks. However, VXLAN can also
 incur more overhead and may not be usable for RDMA-enabled compute VMs.</p>
 </dd>
-<dt id="term-XMPP">XMPP</dt><dd><p>Extensible Messaging and Presence Protocol - Used for the exchange of
+<dt id="term-XMPP">XMPP<a class="headerlink" href="#term-XMPP" title="Permalink to this term">¶</a></dt><dd><p>Extensible Messaging and Presence Protocol - Used for the exchange of
 XML-based structured data between network entities.</p>
 </dd>
 </dl>
@@ -207,6 +206,8 @@ contacted through the dedicated Slack channel or by direct email contact at
 <li class="toctree-l1"><a class="reference internal" href="ceph_storage.html">Ceph Storage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="managing_users_and_projects.html">Managing Users and Projects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="operations_and_monitoring.html">Operations and Monitoring</a></li>
+<li class="toctree-l1"><a class="reference internal" href="customising_deployment.html">Customising the OpenStack Deployment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gpus_in_openstack.html">Support for GPUs in OpenStack</a></li>
 </ul>
 
 <div class="relations">
@@ -244,7 +245,7 @@ contacted through the dedicated Slack channel or by direct email contact at
       &copy;2020, StackHPC Ltd.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.4</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
