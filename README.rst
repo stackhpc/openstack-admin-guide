@@ -26,5 +26,16 @@ Then use one of the following build commands:
    make html
    make singlehtml
 
-Run ``make`` to see all possible builds. PDF builds will require extra packages
-to be installed.
+Run ``make`` to see all possible builds.
+
+PDF builds will require extra packages to be installed. For CentOS 8:
+
+.. code-block:: console
+
+   sudo dnf install -y epel-release
+
+   sudo dnf install -y latexmk make texlive texlive-capt-of texlive-fncychap \
+   texlive-framed texlive-needspace texlive-tabulary texlive-titlesec \
+   texlive-upquote texlive-wrapfig
+
+   make latexpdf
