@@ -109,6 +109,7 @@ Gather the new configuration for comparison of changes:
 
    kayobe# mkdir ~/config-after
    kayobe# kayobe overcloud service configuration save \
+           --node-config-dir /tmp/config-new \
            --output-dir ~/config-after
 
 You can now compare the configuration in ``~/config-before`` and
