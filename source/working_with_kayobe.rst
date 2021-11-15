@@ -79,8 +79,9 @@ An easy way to manage the vault password is to update ``.bash_profile`` to add
 a command such as:
 
 .. code-block:: console
+   :substitutions:
 
-   kayobe# export KAYOBE_VAULT_PASSWORD_FILE=~/vault.pass
+   kayobe# export KAYOBE_VAULT_PASSWORD=$(cat |vault_password_file_path|)
 
 Verifying Changes Before Applying
 ---------------------------------
