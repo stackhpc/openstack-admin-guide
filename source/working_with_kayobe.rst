@@ -37,7 +37,9 @@ Making a Kayobe Checkout
 A Kayobe checkout is made on the Ansible control host.
 
 A Kayobe development environment can easily be set up using a script called
-``beokay``, for example:
+``beokay``, for example. This command will need the ``KAYOBE_VAULT_PASSWORD``
+environment variable to be set when secrets are encrypted with Ansible Vault.
+See the next section for details.
 
 .. code-block:: console
    :substitutions:
