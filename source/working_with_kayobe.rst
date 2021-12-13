@@ -151,7 +151,7 @@ From the seed host, the Bifrost container may be entered:
 .. code-block:: console
 
    seed# docker exec -it bifrost_deploy /bin/bash
-   (bifrost-deploy)[root@seed bifrost-base]# source env-vars
-   (bifrost-deploy)[root@seed bifrost-base]# openstack baremetal node list
+   (bifrost-deploy)[root@seed bifrost-base]# export OS_CLOUD=bifrost
+   (bifrost-deploy)[root@seed bifrost-base]# baremetal node list
 
 .. Consider adding a section about configuring the physical network.
