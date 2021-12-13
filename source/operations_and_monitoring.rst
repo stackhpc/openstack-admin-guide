@@ -499,7 +499,6 @@ Shutting down the seed VM
 .. code-block:: console
    :substitutions:
 
-   kayobe# ssh stack@|seed_name| sudo systemctl poweroff
    kayobe# virsh shutdown |seed_name|
 
 .. _full-shutdown:
