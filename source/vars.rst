@@ -1,4 +1,5 @@
 .. |base_path| replace:: ~/kayobe-env
+.. |chat_system| replace:: Slack
 .. |control_host_access| replace:: |control_host| is used as the Ansible control host. Each operator uses their own account on this host, but with a shared SSH key stored as ``~/.ssh/id_rsa``.
 .. |control_host| replace:: acme-seed-hypervisor
 .. |controller0_hostname| replace:: ``ctrl0``

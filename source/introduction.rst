@@ -184,5 +184,5 @@ Contacting StackHPC Support
 
 StackHPC's technical team is available for |support_level| for OpenStack issues
 related to the |project_name| OpenStack deployment. StackHPC support can be
-contacted through the dedicated Slack channel or by direct email contact at
-|support_email|.
+contacted through the dedicated |chat_system| channel or by direct email
+contact at |support_email|.
