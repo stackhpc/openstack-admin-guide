@@ -170,10 +170,6 @@ For example, to put |hypervisor_hostname| into maintenance:
    seed# docker exec -it bifrost_deploy /bin/bash
    (bifrost-deploy)[root@seed bifrost-base]# OS_CLOUD=bifrost baremetal node maintenance set |hypervisor_hostname|
 
-.. ifconfig:: deployment['ceph_managed']
-
-   .. include:: hardware_inventory_management_ceph.rst
-
 .. _unset-bifrost-maintenance-mode:
 
 Unset maintenance mode on a node in Bifrost
