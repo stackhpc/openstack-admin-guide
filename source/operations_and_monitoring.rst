@@ -591,21 +591,26 @@ perform the following cleanup procedure regularly:
 
 Elasticsearch indexes retention
 ===============================
-To enable and alter default rotation values for Elasticsearch Curator edit ``${KAYOBE_CONFIG_PATH}/kolla/globals.yml`` - This applies both to Monasca and Central Logging configurations.
+
+To enable and alter default rotation values for Elasticsearch Curator, edit
+``${KAYOBE_CONFIG_PATH}/kolla/globals.yml``:
 
 .. code-block:: console
 
    # Allow Elasticsearch Curator to apply a retention policy to logs
    enable_elasticsearch_curator: true
+
    # Duration after which index is closed
    elasticsearch_curator_soft_retention_period_days: 90
+
    # Duration after which index is deleted
    elasticsearch_curator_hard_retention_period_days: 180
 
-Reconfigure elasticsearch with new values:
+Reconfigure Elasticsearch with new values:
 
 .. code-block:: console
 
-   kayobe overcloud service reconfigure --kolla-tags elasticsearch --kolla-skip-tags common --skip-precheck
+   kayobe overcloud service reconfigure --kolla-tags elasticsearch
 
-For more information see `upstream documentation <https://docs.openstack.org/kolla-ansible/ussuri/reference/logging-and-monitoring/central-logging-guide.html#curator>`__
+For more information see the `upstream documentation
+<https://docs.openstack.org/kolla-ansible/latest/reference/logging-and-monitoring/central-logging-guide.html#curator>`__.
