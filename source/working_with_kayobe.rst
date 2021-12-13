@@ -136,7 +136,7 @@ user account on the seed is the |seed_user| user.
    :substitutions:
 
    kayobe# ssh -l stack |seed_ip|
-   [stack@seed ~]$ sudo docker ps
+   seed# docker ps
    CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                    NAMES
    ed034742903b        registry:latest     "/entrypoint.sh /etc…"   2 months ago        Up 2 months         0.0.0.0:5000->5000/tcp   docker_registry
    640221d53b0f        9355cba4a8cd        "/sbin/init"             2 months ago        Up 2 months                                  bifrost_deploy
@@ -150,7 +150,7 @@ From the seed host, the Bifrost container may be entered:
 
 .. code-block:: console
 
-   seed# sudo docker exec -it bifrost_deploy /bin/bash
+   seed# docker exec -it bifrost_deploy /bin/bash
    (bifrost-deploy)[root@seed bifrost-base]# source env-vars
    (bifrost-deploy)[root@seed bifrost-base]# openstack baremetal node list
 
