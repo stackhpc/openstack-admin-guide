@@ -167,7 +167,7 @@ For example, to put |hypervisor_hostname| into maintenance:
 .. code-block:: console
    :substitutions:
 
-   seed# sudo docker exec -it bifrost_deploy /bin/bash
+   seed# docker exec -it bifrost_deploy /bin/bash
    (bifrost-deploy)[root@seed bifrost-base]# OS_CLOUD=bifrost openstack baremetal node maintenance set |hypervisor_hostname|
 
 .. ifconfig:: deployment['ceph_managed']
@@ -184,7 +184,7 @@ For example, to take |hypervisor_hostname| out of maintenance:
 .. code-block:: console
    :substitutions:
 
-   seed# sudo docker exec -it bifrost_deploy /bin/bash
+   seed# docker exec -it bifrost_deploy /bin/bash
    (bifrost-deploy)[root@seed bifrost-base]# OS_CLOUD=bifrost openstack baremetal node maintenance unset |hypervisor_hostname|
 
 Detect hardware differences with cardiff

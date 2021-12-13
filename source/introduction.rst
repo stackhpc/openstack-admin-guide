@@ -49,7 +49,8 @@ variables conventionally drawn from ``kayobe-config/kayobe-env``. The
 
 ``seed#``
 
-A command that must be run on the seed VM.
+A command that must be run on the seed VM using the Kayobe Ansible user account
+(``stack`` by default).
 
 ``bifrost#``
 
