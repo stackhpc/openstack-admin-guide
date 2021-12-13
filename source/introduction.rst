@@ -60,12 +60,6 @@ A command that must be run within the Bifrost service container, hosted on the s
 
 A command that can be run (as superuser) from a running compute instance.
 
-``monasca#``
-
-A command that must be run with OpenStack control plane admin credentials
-loaded, and the Monasca client and supporting modules available (whether in a
-virtualenv or installed in the OS libraries).
-
 Glossary of Terms
 -----------------
 
@@ -129,12 +123,6 @@ Glossary of Terms
     MLAG
       Multi-Chassis Link Aggregate - a method of providing multi-pathing and
       multi-switch redundancy in layer-2 networks.
-
-    Monasca
-      OpenStack’s monitoring service (“Monitoring as a Service at Scale”).
-      Logging, telemetry and events from the infrastructure, control plane and
-      user projects can be submitted and processed by Monasca.
-      https://docs.openstack.org/monasca-api/latest/
 
     Neutron
       OpenStack’s networking service.
