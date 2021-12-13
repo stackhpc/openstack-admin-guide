@@ -56,7 +56,7 @@ in Bifrost:
 .. code-block:: console
    :substitutions:
 
-   bifrost-7.2.1]# openstack baremetal node list --provision-state enroll
+   bifrost# baremetal node list --provision-state enroll
    +--------------------------------------+-----------------------+---------------+-------------+--------------------+-------------+
    | UUID                                 | Name                  | Instance UUID | Power State | Provisioning State | Maintenance |
    +--------------------------------------+-----------------------+---------------+-------------+--------------------+-------------+
@@ -168,7 +168,7 @@ For example, to put |hypervisor_hostname| into maintenance:
    :substitutions:
 
    seed# docker exec -it bifrost_deploy /bin/bash
-   (bifrost-deploy)[root@seed bifrost-base]# OS_CLOUD=bifrost openstack baremetal node maintenance set |hypervisor_hostname|
+   (bifrost-deploy)[root@seed bifrost-base]# OS_CLOUD=bifrost baremetal node maintenance set |hypervisor_hostname|
 
 .. ifconfig:: deployment['ceph_managed']
 
@@ -185,7 +185,7 @@ For example, to take |hypervisor_hostname| out of maintenance:
    :substitutions:
 
    seed# docker exec -it bifrost_deploy /bin/bash
-   (bifrost-deploy)[root@seed bifrost-base]# OS_CLOUD=bifrost openstack baremetal node maintenance unset |hypervisor_hostname|
+   (bifrost-deploy)[root@seed bifrost-base]# OS_CLOUD=bifrost baremetal node maintenance unset |hypervisor_hostname|
 
 Detect hardware differences with cardiff
 ----------------------------------------
