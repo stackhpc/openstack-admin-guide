@@ -44,7 +44,7 @@ See the next section for details.
 .. code-block:: console
    :substitutions:
 
-   kayobe# git clone https://github.com/markgoddard/beokay
+   kayobe# git clone https://github.com/stackhpc/beokay.git
    kayobe# cd beokay/
    kayobe# ./beokay.py create \
            --base-path |base_path| \
