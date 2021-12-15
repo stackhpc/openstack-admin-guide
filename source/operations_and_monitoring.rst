@@ -277,23 +277,14 @@ Control Plane Monitoring
 The control plane has been configured to collect logs centrally using the EFK
 stack (Elasticsearch, Fluentd and Kibana).
 
-Monitoring of the control plane is performed by Prometheus. Metrics are
-collected by Prometheus exporters, which are either running on all hosts (e.g.
-node exporter), on specific hosts (e.g. controllers for the memcached exporter
-or monitoring hosts for the OpenStack exporter). These exporters are scrapped
-by the Prometheus server.
+Telemetry monitoring of the control plane is performed by Prometheus. Metrics
+are collected by Prometheus exporters, which are either running on all hosts
+(e.g.  node exporter), on specific hosts (e.g. controllers for the memcached
+exporter or monitoring hosts for the OpenStack exporter). These exporters are
+scraped by the Prometheus server.
 
 Configuring Prometheus Alerts
 -----------------------------
-
-Generating Metrics from Specific Log Messages
-+++++++++++++++++++++++++++++++++++++++++++++
-
-This feature from the Monasca logging and alerting pipeline must be transposed
-to Fluentd and Prometheus.
-
-Generating Alerts from Metrics
-++++++++++++++++++++++++++++++
 
 Alerts are defined in code and stored in Kayobe configuration. See ``*.rules``
 files in ``${KAYOBE_CONFIG_PATH}/kolla/config/prometheus`` as a model to add
