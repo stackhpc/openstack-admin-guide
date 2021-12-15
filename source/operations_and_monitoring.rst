@@ -499,7 +499,6 @@ Shutting down the seed VM
 .. code-block:: console
    :substitutions:
 
-   kayobe# ssh stack@|seed_name| sudo systemctl poweroff
    kayobe# virsh shutdown |seed_name|
 
 .. _full-shutdown:
@@ -522,7 +521,7 @@ following order:
 Rebooting a node
 ----------------
 
-Example: Reboot all over the computes apart from |hypervisor_hostname|:
+Example: Reboot all compute hosts apart from |hypervisor_hostname|:
 
 .. code-block:: console
    :substitutions:
