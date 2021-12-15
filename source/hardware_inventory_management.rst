@@ -115,7 +115,7 @@ Evacuating all instances
    admin# nova host-evacuate-live |hypervisor_hostname|
 
 You should now check the status of all the instances that were running on that
-hypervisor. They should all show the status RUNNING. This can be verified with:
+hypervisor. They should all show the status ACTIVE. This can be verified with:
 
 .. code-block:: console
 
