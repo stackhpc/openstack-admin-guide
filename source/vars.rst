@@ -1,3 +1,4 @@
+.. |alertmanager_url| replace:: https://openstack.acme.example:9093
 .. |base_path| replace:: ~/kayobe-env
 .. |chat_system| replace:: Slack
 .. |control_host_access| replace:: |control_host| is used as the Ansible control host. Each operator uses their own account on this host, but with a shared SSH key stored as ``~/.ssh/id_rsa``.
@@ -9,6 +10,7 @@
 .. |flavor_name| replace:: m1.tiny
 .. |floating_ip_access| replace:: from acme-seed-hypervisor and the rest of the Acme network
 .. |grafana_url| replace:: https://openstack.acme.example:3000
+.. |grafana_username| replace:: ``grafana_local_admin``
 .. |horizon_access| replace:: via the Internet.
 .. |horizon_theme_clone_url| replace:: https://github.com/acme-openstack/horizon-theme.git
 .. |horizon_theme_name| replace:: acme
