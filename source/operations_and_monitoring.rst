@@ -36,6 +36,8 @@ Kolla-Ansible and can be extracted from the encrypted passwords file
 
    kayobe# ansible-vault view ${KAYOBE_CONFIG_PATH}/kolla/passwords.yml --vault-password-file |vault_password_file_path| | grep ^grafana_admin_password
 
+.. _prometheus-alertmanager:
+
 Access to Prometheus Alertmanager
 =================================
 
@@ -289,6 +291,32 @@ Configuring Prometheus Alerts
 Alerts are defined in code and stored in Kayobe configuration. See ``*.rules``
 files in ``${KAYOBE_CONFIG_PATH}/kolla/config/prometheus`` as a model to add
 custom rules.
+
+Silencing Prometheus Alerts
+---------------------------
+
+Sometimes alerts must be silenced because the root cause cannot be resolved
+right away, such as when hardware is faulty. For example, an unreachable
+hypervisor will produce several alerts:
+
+* ``InstanceDown`` from Node Exporter
+* ``OpenStackServiceDown`` from the OpenStack exporter, which reports status of
+  the ``nova-compute`` agent on the host
+* ``PrometheusTargetMissing`` from several Prometheus exporters
+
+Rather than silencing each alert one by one for a specific host, a silence can
+apply to multiple alerts using a reduced list of labels. :ref:`Log into
+Alertmanager <prometheus-alertmanager>`, click on the ``Silence`` button next
+to an alert and adjust the matcher list to keep only ``instance=<hostname>``
+label.  Then, create another silence to match ``hostname=<hostname>`` (this is
+required because, for the OpenStack exporter, the instance is the host running
+the monitoring service rather than the host being monitored).
+
+.. note::
+
+   After creating the silence, you may get redirected to a 404 page. This is a
+   `known issue <https://github.com/prometheus/alertmanager/issues/1377>`__
+   when running several Alertmanager instances behind HAProxy.
 
 Control Plane Shutdown Procedure
 ================================
