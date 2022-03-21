@@ -19,6 +19,13 @@ The following software environment is needed:
 * OpenStack admin credentials, eg public-openrc.sh from kayobe-config/etc/kolla
 * A virtualenv setup with python-openstackclient installed
 
+.. code-block:: shell
+   :substitutions:
+
+   source venv/bin/activate
+   pip install python-openstackclient
+   source |base_path|/src/|kayobe_config|/etc/kolla/public-openrc.sh
+
 Setup Rally for a new user
 --------------------------
 
@@ -29,16 +36,17 @@ Install Rally into the virtualenv:
 
 .. code-block:: shell
 
-   pip3 install git+https://github.com/openstack/rally-openstack.git \
-        --constraint https://raw.githubusercontent.com/openstack/rally-openstack/master/upper-constraints.txt
+   pip install rally-openstack \
+        --constraint https://opendev.org/openstack/rally-openstack/raw/branch/master/upper-constraints.txt
 
-Create the Rally test database and configuration file:
+Create the Rally test database and configuration file.  For this you will
+need the virtualenv and public-openrc as described above:
 
 .. code-block:: shell
 
    mkdir -p ~/.rally ~/rally/data
    echo "[database]" | tee ~/.rally/rally.conf
-   echo "connection=sqlite:////home/${USER}/rally/data/rally.db" | tee -a ~/.rally/rally.conf
+   echo "connection=sqlite://${HOME}/rally/data/rally.db" | tee -a ~/.rally/rally.conf
    rally db recreate
    rally verify create-verifier --name default --type tempest
    rally deployment create --fromenv --name production
