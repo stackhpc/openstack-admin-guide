@@ -37,7 +37,7 @@ Install Rally into the virtualenv:
 .. code-block:: shell
 
    pip install rally-openstack \
-        --constraint https://opendev.org/openstack/rally-openstack/raw/branch/master/upper-constraints.txt
+        --constraint https://releases.openstack.org/constraints/upper/master
 
 Create the Rally test database and configuration file.  For this you will
 need the virtualenv and public-openrc as described above:
