@@ -46,7 +46,7 @@ need the virtualenv and public-openrc as described above:
 
    mkdir -p ~/.rally ~/rally/data
    echo "[database]" | tee ~/.rally/rally.conf
-   echo "connection=sqlite://${HOME}/rally/data/rally.db" | tee -a ~/.rally/rally.conf
+   echo "connection=sqlite:///${HOME}/rally/data/rally.db" | tee -a ~/.rally/rally.conf
    rally db recreate
    rally verify create-verifier --name default --type tempest
    rally deployment create --fromenv --name production
@@ -64,9 +64,10 @@ Shakespeare is used for writing Tempest test configuration.
 
 .. code-block:: shell
 
+   cd ~/rally
    git clone https://github.com/stackhpc/shakespeare.git
    cd shakespeare
-   pip3 install -r requirements.txt
+   pip install -r requirements.txt
 
 Install Tempest Recipe
 ----------------------
