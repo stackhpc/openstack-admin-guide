@@ -44,5 +44,6 @@
 .. |seed_user| replace:: stack
 .. |support_email| replace:: acme-support@stackhpc.com
 .. |support_level| replace:: standard support
+.. |tempest_recipes| replace:: https://github.com/acme-openstack/tempest-recipes.git
 .. |tls_setup| replace:: TLS is implemented using a wildcard certificate available for ``*.acme.example``.
 .. |vault_password_file_path| replace:: ~/vault-password
