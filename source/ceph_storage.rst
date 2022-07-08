@@ -21,9 +21,9 @@ Ceph Storage
    Ceph Ansible
    ============
 
-   .. include:: ceph_ansible.rst
+   .. include:: include/ceph_ansible.rst
 
    Ceph Troubleshooting
    ====================
 
-   .. include:: ceph_troubleshooting.rst
+   .. include:: include/ceph_troubleshooting.rst
