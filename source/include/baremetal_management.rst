@@ -265,4 +265,4 @@ Considerations when booting baremetal compared to VMs
   * You can still attach floating IPs
 
 - Instances take much longer to provision (expect at least 15 mins)
-- When booting an instances use one of the flavors that maps to a baremetal node via the RESOURCE_CLASS configured on the flavor.
+- When booting an instance use one of the flavors that maps to a baremetal node via the RESOURCE_CLASS configured on the flavor.
