@@ -1,0 +1,20 @@
+---
+name: Build OpenStack admin guide
+on: 
+  - pull_request
+jobs:
+  build:
+    name: Build OpenStack admin guide
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install Python dependencies
+        run: pip3 install -r requirements.txt
+
+      - name: Build HTML
+        run: make html
