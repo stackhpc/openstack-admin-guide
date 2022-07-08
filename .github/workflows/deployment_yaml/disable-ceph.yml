@@ -1,0 +1,7 @@
+---
+ceph: false
+ceph_ansible: false
+ceph_managed: false
+ironic: false
+ironic_automated_cleaning: true
+kayobe_manages_physical_network: true
