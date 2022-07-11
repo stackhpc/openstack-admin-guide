@@ -26,6 +26,7 @@ Contents
    operations_and_monitoring
    customising_deployment
    gpus_in_openstack
+   baremetal_management
    rally_and_tempest
 
 Indices and search

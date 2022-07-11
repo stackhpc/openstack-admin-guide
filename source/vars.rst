@@ -1,5 +1,6 @@
 .. |alertmanager_url| replace:: https://openstack.acme.example:9093
 .. |base_path| replace:: ~/kayobe-env
+.. |bmc| replace:: BMC
 .. |chat_system| replace:: Slack
 .. |control_host_access| replace:: |control_host| is used as the Ansible control host. Each operator uses their own account on this host, but with a shared SSH key stored as ``~/.ssh/id_rsa``.
 .. |control_host| replace:: acme-seed-hypervisor
