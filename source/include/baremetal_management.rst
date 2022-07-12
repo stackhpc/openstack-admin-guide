@@ -102,7 +102,7 @@ Static switch configuration
    - A second Neutron router has been created between the cleaning and internal API networks. This allows Ironic Python Agent to post
      data back to Ironic (Ironic listens on the internal API network, whilst the node PXE boots on the cleaning network).
 
-   - These routers are managed using `nesi-config <https://gitlab.flexihpc.nesi.org.nz/flexihpc/nesi-config>_
+   - These routers are managed using `nesi-config <https://gitlab.flexihpc.nesi.org.nz/flexihpc/nesi-config>`_
 
    - Controllers can reach the IDRACs via the workload out-of-band network.
      This is so Ironic can perform power control actions, firmware updates, etc.
@@ -119,6 +119,14 @@ Static switch configuration
      * Workload cleaning network (VLAN 152)
      * Any VLAN networks defined in OpenStack. These are needed for DHCP services and routers to function correctly. An example of such a network is the `prod network  (VLAN 3144) <https://cloud.us.scp.astrazeneca.net/project/networks/130fc042-0046-4d15-b16a-b389d3bb9c2a/detail>`__ defined in the US OpenStack.
 
+   - The management network has a fairly basic configuration for bare metal nodes.
+
+     .. code-block:: yaml
+
+        swp18:
+          description: "a01gc04"
+          config: "{{ switch_interface_config_baremetal_compute_mgmt }}"
+
    - Some initial switch configuration is required before networking generic switch can take over the management of a port group.
      For example:
 
@@ -133,19 +141,7 @@ Static switch configuration
             - bond lacp-bypass-allow
             # NOTE: Do not add switch_interface_config_compute_data for bare metal nodes.
 
-     For :ref:`ironic-node-discovery` to work, you need to manually switch the port group to the provisioning network:
-
-     .. code-block:: yaml
-
-        bond16:
-          type: bond
-          description: "a01gc04"
-          config:
-            - bond slaves swp16
-            - clag id 16
-            - bond lacp-bypass-allow
-            # NOTE: Do not add switch_interface_config_compute_data for bare metal nodes.
-            - bridge access 150
+     This configuration should be applied to each switch in the leaf pair.
 
      **NOTE**: You only need to do this if Ironic isn't aware of the node.
 
@@ -163,7 +159,7 @@ Static switch configuration
 
        .. code-block::
 
-         kayobe physical network configure --interface-description-limit <description> --group switches --display --enable-discovery
+         kayobe physical network configure --interface-description-limit <description> --group mgmt-switches --display --enable-discovery
 
        In this example, ``--display`` is used to preview the switch configuration without applying it.
 
@@ -259,6 +255,8 @@ Ironic node discovery
 
 Discovery is the process of PXE booting the nodes into the Ironic Python Agent (IPA) ramdisk. This ramdisk will collect hardware and networking configuration from the node in a process known as introspection. This data is used to populate the baremetal node object in Ironic. The series of steps you need to take to enrol a new node is as follows:
 
+- Ensure that all necessary `inspection rules <https://gitlab.flexihpc.nesi.org.nz/flexihpc/kayobe-config/-/blob/nesi/wallaby/etc/kayobe/inspector.yml>`_ are defined.
+
 - Configure credentials on the |bmc|. These are needed for Ironic to be able to perform power control actions.
 
 - Controllers should have network connectivity with the target |bmc|.
@@ -275,7 +273,7 @@ Discovery is the process of PXE booting the nodes into the Ironic Python Agent (
 
 .. ifconfig:: deployment['kayobe_manages_physical_network']
 
-   - Put the node onto the provisioning network. See :ref:`static-switch-config`.
+   - Put the node onto the provisioning network using the ``--enable-discovery`` flag. See :ref:`static-switch-config`.
 
      * This is only necessary to initially discover the node. Once the node is in registered in Ironic,
        it will take over control of the the VLAN membership. See :ref:`dynamic-switch-configuration`.
