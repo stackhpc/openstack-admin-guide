@@ -96,20 +96,56 @@ Static switch configuration
 
    Static physical network configuration is managed via Kayobe.
 
-   .. TODO: Fill in the switch configuration
+   - A Neutron router has been created between the workload provisioning and internal API networks. This allows Ironic Python Agent to post
+     data back to Ironic (Ironic listens on the internal API network, whilst the node PXE boots on the workload provisioning network).
 
-   - Some initial switch configuration is required before networking generic switch can take over the management of an interface.
-     First, LACP must be configured on the switch ports attached to the baremetal node, e.g:
+   - A second Neutron router has been created between the cleaning and internal API networks. This allows Ironic Python Agent to post
+     data back to Ironic (Ironic listens on the internal API network, whilst the node PXE boots on the cleaning network).
 
-     .. code-block:: shell
+   - These routers are managed using `nesi-config <https://gitlab.flexihpc.nesi.org.nz/flexihpc/nesi-config>_
 
-     The interface is then partially configured:
+   - Controllers can reach the IDRACs via the workload out-of-band network.
+     This is so Ironic can perform power control actions, firmware updates, etc.
 
-     .. code-block:: shell
+   - Controllers are attached to the following layer 2 networks:
 
-     For :ref:`ironic-node-discovery` to work, you need to manually switch the port to the provisioning network:
+     * Overcloud provisioning (VLAN 3251, access)
+     * Workload out-of-band (VLAN 1721)
+     * Public (VLAN 601)
+     * Internal API (VLAN 65)
+     * Storage (VLAN 66)
+     * Tunnel (VLAN 68)
+     * Workload provisioning network (VLAN 150)
+     * Workload cleaning network (VLAN 152)
+     * Any VLAN networks defined in OpenStack. These are needed for DHCP services and routers to function correctly. An example of such a network is the `prod network  (VLAN 3144) <https://cloud.us.scp.astrazeneca.net/project/networks/130fc042-0046-4d15-b16a-b389d3bb9c2a/detail>`__ defined in the US OpenStack.
 
-     .. code-block:: shell
+   - Some initial switch configuration is required before networking generic switch can take over the management of a port group.
+     For example:
+
+     .. code-block:: yaml
+
+        bond16:
+          type: bond
+          description: "a01gc04"
+          config:
+            - bond slaves swp16
+            - clag id 16
+            - bond lacp-bypass-allow
+            # NOTE: Do not add switch_interface_config_compute_data for bare metal nodes.
+
+     For :ref:`ironic-node-discovery` to work, you need to manually switch the port group to the provisioning network:
+
+     .. code-block:: yaml
+
+        bond16:
+          type: bond
+          description: "a01gc04"
+          config:
+            - bond slaves swp16
+            - clag id 16
+            - bond lacp-bypass-allow
+            # NOTE: Do not add switch_interface_config_compute_data for bare metal nodes.
+            - bridge access 150
 
      **NOTE**: You only need to do this if Ironic isn't aware of the node.
 
@@ -131,13 +167,15 @@ Static switch configuration
 
        In this example, ``--display`` is used to preview the switch configuration without applying it.
 
-   .. TODO: Fill in information about how switches are configured in kayobe-config, with links
-
    - Configuration is done using a combination of ``group_vars`` and ``host_vars``
 
-.. ifconfig:: not deployment['kayobe_manages_physical_network']
+     * The bulk of the configuration is done with templates in the `group_vars for the different switches groups <https://gitlab.flexihpc.nesi.org.nz/flexihpc/kayobe-config/-/tree/nesi/wallaby/etc/kayobe/environments/production/inventory/group_vars>`__. This allows us to share 
+       configuration templates across all switches.
+     * Each switch has host variables defined in `host_vars
+       <https://gitlab.flexihpc.nesi.org.nz/flexihpc/kayobe-config/-/tree/nesi/wallaby/etc/kayobe/environments/production/inventory/host_vars>`_
+       that provide configuration specific to the switch.
 
-   .. TODO: Fill in details about how physical network configuration is managed.
+.. ifconfig:: not deployment['kayobe_manages_physical_network']
 
    Static physical network configuration is not managed via Kayobe.
 
@@ -168,19 +206,36 @@ Commands that NGS will execute
 Networking Generic Switch is mainly concerned with toggling the ports onto different VLANs. It
 cannot fully configure the switch.
 
-.. TODO: Fill in the switch configuration
+NGS manages both the provisioning network and the high speed network.
+Interfaces on the provisioning network are single links, while those on the high speed network are bonded using LACP & MLAG.
 
 - Switching the port onto the provisioning network
 
   .. code-block:: shell
 
+     net del interface swp0 link down
+     net add interface swp0 bridge access 150
+
+- Unplugging from the provisioning network
+
+  .. code-block:: shell
+
+     net del interface swp0 bridge access 150
+     net add interface swp0 link down
+
 - Switching the port onto the tenant network.
 
   .. code-block:: shell
 
+     net del bond bond0 link down
+     net add bond bond0 bridge access 1234
+
 - When deleting the instance, the VLANs are removed from the port. Using:
 
   .. code-block:: shell
+
+     net del bond bond0 bridge access 1234
+     net add bond bond0 link down
 
 NGS will save the configuration after each reconfiguration (by default).
 
@@ -220,7 +275,7 @@ Discovery is the process of PXE booting the nodes into the Ironic Python Agent (
 
 .. ifconfig:: deployment['kayobe_manages_physical_network']
 
-   - Put the node onto the provisioning network by using the ``--enable discovery`` flag. See :ref:`static-switch-config`.
+   - Put the node onto the provisioning network. See :ref:`static-switch-config`.
 
      * This is only necessary to initially discover the node. Once the node is in registered in Ironic,
        it will take over control of the the VLAN membership. See :ref:`dynamic-switch-configuration`.
@@ -231,17 +286,15 @@ Discovery is the process of PXE booting the nodes into the Ironic Python Agent (
 
    - Put the node onto the provisioning network.
 
-.. TODO: link to the relevant file in kayobe config
-
-- Add node to the kayobe inventory.
-
-.. TODO: Fill in details about necessary BIOS & RAID config
-
-- Apply any necesary BIOS & RAID configuration.
-
-.. TODO: Fill in details about how to trigger a PXE boot
+- Add node to the `kayobe inventory <https://gitlab.flexihpc.nesi.org.nz/flexihpc/kayobe-config/-/blob/nesi/wallaby/etc/kayobe/environments/production/inventory/hosts>`_.
 
 - PXE boot the node.
+
+  * Go to the node's iLo web interface to trigger discovery by network booting:
+
+      - Administration -> Boot order -> One time boot status -> Network device
+      - Power cycle
+      - To debug, view the HTML5 console (bottom left) as the node boots
 
 .. _tor-switch-configuration:
 
@@ -250,8 +303,9 @@ Top of Rack (ToR) switch configuration
 
 Networking Generic Switch must be aware of the Top-of-Rack switch connected to the new node.
 Switches managed by NGS are configured in ``ml2_conf.ini``.
-
-.. TODO: Fill in details about how switches are added to NGS config in kayobe-config
+This file is generated based on the ``kolla_neutron_ml2_generic_switches``
+variable in `neutron.yml
+<https://gitlab.flexihpc.nesi.org.nz/flexihpc/kayobe-config/-/blob/nesi/wallaby/etc/kayobe/environments/production/neutron.yml>`_.
 
 After adding switches to the NGS configuration, Neutron must be redeployed.
 
