@@ -16,3 +16,12 @@ ironic_automated_cleaning: true
 
 # Whether Kayobe manages physical network devices.
 kayobe_manages_physical_network: true
+
+# Whether the deployment includes Wazuh.
+wazuh: true
+
+# Whether the Wazuh deployment is managed via StackHPC.
+wazuh_managed: true
+
+# Whether the Wazuh deployment is handled via Ansible.
+wazuh_ansible: true
