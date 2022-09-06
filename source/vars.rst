@@ -48,3 +48,6 @@
 .. |tempest_recipes| replace:: https://github.com/acme-openstack/tempest-recipes.git
 .. |tls_setup| replace:: TLS is implemented using a wildcard certificate available for ``*.acme.example``.
 .. |vault_password_file_path| replace:: ~/vault-password
+.. |wazuh_master_url| replace:: https://|wazuh_master_ip|
+.. |wazuh_master_ip| replace:: 172.168.0.10:5601
+.. |wazuh_master_name| replace:: wazuh-master01
