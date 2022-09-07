@@ -35,6 +35,7 @@
 .. |project_name| replace:: Acme
 .. |provisioning_net_cidr| replace:: 192.168.0.0/24
 .. |public_api_access_host| replace:: |control_host|
+.. |public_endpoint_fqdn| replace:: openstack.acme.example
 .. |public_network| replace:: public
 .. |public_subnet| replace:: 10.0.0.0/8
 .. |public_vip| replace:: 10.0.0.1

@@ -113,8 +113,8 @@ On each controller:
 Some services may store data in a dedicated Docker volume, which can be removed
 with ``docker volume rm``.
 
-Installing and Updating TLS Certificates
-----------------------------------------
+Installing TLS Certificates
+---------------------------
 
 |tls_setup|
 
@@ -127,7 +127,12 @@ file as ``secrets_kolla_external_tls_cert``. Use a command of this form:
    kayobe# ansible-vault edit ${KAYOBE_CONFIG_PATH}/secrets.yml --vault-password-file=|vault_password_file_path|
 
 Concatenate the contents of the certificate and key files to create
-``secrets_kolla_external_tls_cert``.
+``secrets_kolla_external_tls_cert``.  The certificates should be installed in
+this order:
+
+* TLS certificate for the |project_name| OpenStack endpoint |public_endpoint_fqdn|
+* Any intermediate certificates
+* The TLS certificate private key
 
 In ``${KAYOBE_CONFIG_PATH}/kolla.yml``, set the following:
 
@@ -143,9 +148,23 @@ be updated in Keystone:
 
    kayobe# kayobe overcloud service reconfigure
 
+Updating TLS Certificates
+-------------------------
+
+Check the expiry date on an installed TLS certificate from a host that can
+reach the |project_name| OpenStack APIs:
+
+.. code-block:: console
+   :substitutions:
+
+   openstack# openssl s_client -connect |public_endpoint_fqdn|:443 2> /dev/null | openssl x509 -noout -dates
+
+*NOTE*: Blackbox monitoring can check certificates automatically
+and alert when expiry is approaching.
+
 To update an existing certificate, for example when it has reached expiration,
-change the value of ``secrets_kolla_external_tls_cert`` and run the following
-command:
+change the value of ``secrets_kolla_external_tls_cert``, in the same order as
+above.  Run the following command:
 
 .. code-block:: console
 
