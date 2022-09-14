@@ -118,8 +118,9 @@ Installing TLS Certificates
 
 |tls_setup|
 
-To configure TLS for the first time, we write a PEM file to the ``secrets.yml``
-file as ``secrets_kolla_external_tls_cert``. Use a command of this form:
+To configure TLS for the first time, we write the contents of a PEM
+file to the ``secrets.yml`` file as ``secrets_kolla_external_tls_cert``.
+Use a command of this form:
 
 .. code-block:: console
    :substitutions:
@@ -141,12 +142,25 @@ In ``${KAYOBE_CONFIG_PATH}/kolla.yml``, set the following:
    kolla_enable_tls_external: True
    kolla_external_tls_cert: "{{ secrets_kolla_external_tls_cert }}"
 
-To configure TLS, we need to reconfigure all services, as endpoint URLs need to
+To apply TLS configuration, we need to reconfigure all services, as endpoint URLs need to
 be updated in Keystone:
 
 .. code-block:: console
 
    kayobe# kayobe overcloud service reconfigure
+
+Alternative Configuration
++++++++++++++++++++++++++
+
+As an alternative to writing the certificates as a variable to
+``secrets.yml``, it is also possible to write the same data to a file,
+``etc/kayobe/kolla/certificates/haproxy.pem``.  The file should be
+vault-encrypted in the same manner as secrets.yml.  In this instance,
+variable ``kolla_enable_tls_cert`` does not need to be defined.
+
+See `Kolla-Ansible TLS guide
+<https://docs.openstack.org/kolla-ansible/latest/admin/tls.html>`__ for
+further details.
 
 Updating TLS Certificates
 -------------------------
@@ -159,7 +173,7 @@ reach the |project_name| OpenStack APIs:
 
    openstack# openssl s_client -connect |public_endpoint_fqdn|:443 2> /dev/null | openssl x509 -noout -dates
 
-*NOTE*: Blackbox monitoring can check certificates automatically
+*NOTE*: Prometheus Blackbox monitoring can check certificates automatically
 and alert when expiry is approaching.
 
 To update an existing certificate, for example when it has reached expiration,
