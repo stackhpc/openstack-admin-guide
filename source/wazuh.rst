@@ -6,7 +6,11 @@ Wazuh Security Platform
 
 .. ifconfig:: deployment['wazuh']
 
-    The |project_name| deployment uses Wazuh as security platform to detect intruders within your network.
+    The |project_name| deployment uses `Wazuh <https://wazuh.com>`_ as security monitoring platform.  Among other things, Wazuh monitors for:
+
+* Security-related system events.
+* Known vulnerabilities (CVEs) in versions of installed software.
+* Misconfigurations in system security.
 
 .. ifconfig:: deployment['wazuh_managed']
 
