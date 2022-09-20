@@ -156,7 +156,7 @@ As an alternative to writing the certificates as a variable to
 ``secrets.yml``, it is also possible to write the same data to a file,
 ``etc/kayobe/kolla/certificates/haproxy.pem``.  The file should be
 vault-encrypted in the same manner as secrets.yml.  In this instance,
-variable ``kolla_enable_tls_cert`` does not need to be defined.
+variable ``kolla_external_tls_cert`` does not need to be defined.
 
 See `Kolla-Ansible TLS guide
 <https://docs.openstack.org/kolla-ansible/latest/admin/tls.html>`__ for
