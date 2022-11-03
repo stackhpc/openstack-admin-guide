@@ -13,6 +13,9 @@ Build the guide
 
 Prepare your build environment:
 
+Please note that Sphinx requires now python version 3.7+. Details: https://github.com/sphinx-contrib/autoprogram/pull/48.
+Default python version in CentOS 8 is 3.6. So either you use different distro, or install python 3.7+ manually.
+
 .. code-block:: console
 
    python3 -m venv venv
