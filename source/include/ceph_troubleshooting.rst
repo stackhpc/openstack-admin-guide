@@ -5,6 +5,15 @@ After deployment, when a drive fails it may cause OSD crashes in Ceph.
 If Ceph detects crashed OSDs, it will go into `HEALTH_WARN` state.
 Ceph can report details about failed OSDs by running:
 
+.. ifconfig:: deployment['cephadm']
+
+   .. note ::
+
+      Remember to run ceph/rbd commands after issuing ``cephadm shell`` or
+      installing ceph clients.
+      It is also important to run the commands on the hosts with _admin label
+      (Ceph monitors by default).
+
 .. code-block:: console
 
    ceph# ceph health detail
@@ -25,41 +34,6 @@ The failed hardware device is logged by the Linux kernel:
 
 Cross-reference the hardware device and OSD ID to ensure they match.
 (Using `pvs` and `lvs` may help make this connection).
-
-Removing a Failed Ceph Drive
-----------------------------
-
-If a drive is verified dead, stop and eject the osd (eg. `osd.4`)
-from the cluster:
-
-.. code-block:: console
-
-   storage-0# systemctl stop ceph-osd@4.service
-   storage-0# systemctl disable ceph-osd@4.service
-   ceph# ceph osd out osd.4
-
-.. ifconfig:: deployment['ceph_ansible']
-
-   Before running Ceph-Ansible, also remove vestigial state directory
-   from `/var/lib/ceph/osd` for the purged OSD, for example for OSD ID 4:
-
-   .. code-block:: console
-
-      storage-0# rm -rf /var/lib/ceph/osd/ceph-4
-
-Remove Ceph OSD state for the old OSD, here OSD ID `4` (we will
-backfill all the data when we reintroduce the drive).
-
-.. code-block:: console
-
-   ceph# ceph osd purge --yes-i-really-mean-it 4
-
-Unset noout for osds when hardware maintenance has concluded - eg.
-while waiting for the replacement disk:
-
-.. code-block:: console
-
-   ceph# ceph osd unset noout
 
 Inspecting a Ceph Block Device for a VM
 ---------------------------------------

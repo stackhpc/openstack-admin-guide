@@ -21,6 +21,9 @@ Ceph Operations and Troubleshooting
 
 .. include:: include/ceph_troubleshooting.rst
 
+Working with Ceph deployment tool
+=================================
+
 .. ifconfig:: deployment['ceph_ansible']
 
    Ceph Ansible
@@ -28,3 +31,9 @@ Ceph Operations and Troubleshooting
 
    .. include:: include/ceph_ansible.rst
 
+.. ifconfig:: deployment['cephadm']
+
+   cephadm
+   =======
+
+   .. include:: include/cephadm.rst
