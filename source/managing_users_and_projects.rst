@@ -19,8 +19,11 @@ To initialise the working environment for |project_config|:
    admin# source |base_path|/venvs/|project_config|/bin/activate
    admin# pip install -U pip
    admin# pip install -r requirements.txt
-   admin# ansible-galaxy install \
+   admin# ansible-galaxy role install \
           -p ansible/roles \
+          -r requirements.yml
+   admin# ansible-galaxy collection install \
+          -p ansible/collections \
           -r requirements.yml
 
 To define a new project, add a new project to
