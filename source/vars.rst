@@ -1,54 +1,54 @@
-.. |alertmanager_url| replace:: https://openstack.acme.example:9093
+.. |alertmanager_url| replace:: https://hb-openstack.hpc.rug.nl:9093
 .. |base_path| replace:: ~/kayobe-env
-.. |bmc| replace:: BMC
+.. |bmc| replace:: iDRAC
 .. |chat_system| replace:: Slack
 .. |control_host_access| replace:: |control_host| is used as the Ansible control host. Each operator uses their own account on this host, but with a shared SSH key stored as ``~/.ssh/id_rsa``.
-.. |control_host| replace:: acme-seed-hypervisor
-.. |controller0_hostname| replace:: ``ctrl0``
-.. |controller1_hostname| replace:: ``ctrl1``
-.. |controller2_hostname| replace:: ``ctr2``
+.. |control_host| replace:: hb-ansible01
+.. |controller0_hostname| replace:: ``hb-openstack-controller01``
+.. |controller1_hostname| replace:: ``hb-openstack-controller02``
+.. |controller2_hostname| replace:: ``hb-openstack-controller03``
 .. |file_share_location| replace:: Google Drive
-.. |flavor_name| replace:: m1.tiny
+.. |flavor_name| replace:: general.v1.tiny
 .. |floating_ip_access| replace:: from acme-seed-hypervisor and the rest of the Acme network
-.. |grafana_url| replace:: https://openstack.acme.example:3000
+.. |grafana_url| replace:: https://hb-openstack.hpc.rug.nl:3000
 .. |grafana_username| replace:: ``grafana_local_admin``
 .. |horizon_access| replace:: via the Internet.
 .. |horizon_theme_clone_url| replace:: https://github.com/acme-openstack/horizon-theme.git
-.. |horizon_theme_name| replace:: acme
-.. |horizon_url| replace:: https://openstack.acme.example
+.. |horizon_theme_name| replace:: groningen
+.. |horizon_url| replace:: https://hb-openstack.hpc.rug.nl
 .. |hypervisor_hostname| replace:: ``comp0``
 .. |hypervisor_type| replace:: KVM
 .. |ipmi_username| replace:: admin
 .. |kayobe_config_source_url| replace:: https://github.com/acme-openstack/kayobe-config.git
-.. |kayobe_config_source_version| replace:: ``acme/train``
+.. |kayobe_config_source_version| replace:: ``rug/wallaby``
 .. |kayobe_config| replace:: kayobe-config
-.. |kayobe_source_url| replace:: https://github.com/acme-openstack/kayobe.git
-.. |kayobe_source_version| replace:: ``acme/train``
-.. |keystone_public_url| replace:: https://openstack.acme.example:5000
-.. |kibana_url| replace:: https://openstack.acme.example:5601
-.. |kolla_passwords| replace:: https://github.com/acme-openstack/kayobe-config/blob/acme/train/etc/kayobe/kolla/passwords.yml
-.. |monitoring_host| replace:: ``mon0``
+.. |kayobe_source_url| replace:: https://github.com/stackhpc/kayobe.git
+.. |kayobe_source_version| replace:: ``rug/wallaby``
+.. |keystone_public_url| replace:: https://hb-openstack.hpc.rug.nl:5000
+.. |kibana_url| replace:: https://hb-openstack.hpc.rug.nl:5601
+.. |kolla_passwords| replace:: https://github.com/rug-cit-hpc/rug-kayobe-config/blob/rug/wallaby/etc/kayobe/environments/habrok/kolla/passwords.yml
+.. |monitoring_host| replace:: ``hb-openstack-controller01``
 .. |network_name| replace:: admin-vxlan
-.. |nova_rbd_pool| replace:: acme-vms
-.. |project_config_source_url| replace:: https://github.com/acme-openstack/acme-config.git
-.. |project_config| replace:: acme-config
-.. |project_name| replace:: Acme
-.. |provisioning_net_cidr| replace:: 192.168.0.0/24
+.. |nova_rbd_pool| replace:: vms
+.. |project_config_source_url| replace:: https://github.com/rug-cit-hpc/rug-config
+.. |project_config| replace:: rug-config
+.. |project_name| replace:: Bateleur
+.. |provisioning_net_cidr| replace:: 172.23.9.0/24
 .. |public_api_access_host| replace:: |control_host|
-.. |public_endpoint_fqdn| replace:: openstack.acme.example
+.. |public_endpoint_fqdn| replace:: hb-openstack.hpc.rug.nl
 .. |public_network| replace:: public
-.. |public_subnet| replace:: 10.0.0.0/8
-.. |public_vip| replace:: 10.0.0.1
-.. |reference_architecture_url| replace:: https://docs.google.com/document/u/0/?tgif=d
-.. |seed_ip| replace:: 192.168.0.2
-.. |seed_name| replace:: acme-seed
+.. |public_subnet| replace:: 195.169.22.0/23
+.. |public_vip| replace:: 195.169.22.10
+.. |reference_architecture_url| replace:: https://docs.google.com/document/d/1uvBuvRxWZwNTaieVSx8kzrAf8Yfd3CMUNpl7hwK2Nl0/
+.. |seed_ip| replace:: 172.23.11.249
+.. |seed_name| replace:: hb-seed01
 .. |seed_type| replace:: virtual machine
 .. |seed_user| replace:: stack
-.. |support_email| replace:: acme-support@stackhpc.com
+.. |support_email| replace:: rug-support@stackhpc.com
 .. |support_level| replace:: standard support
-.. |tempest_recipes| replace:: https://github.com/acme-openstack/tempest-recipes.git
-.. |tls_setup| replace:: TLS is implemented using a wildcard certificate available for ``*.acme.example``.
+.. |tempest_recipes| replace:: https://github.com/stackhpc/tempest-recipes.git
+.. |tls_setup| replace:: TLS is implemented using a wildcard certificate available for ``*.hb-openstack.hpc.rug.nl``.
 .. |vault_password_file_path| replace:: ~/vault-password
 .. |wazuh_manager_url| replace:: https://172.168.0.10:5601
-.. |wazuh_manager_ip| replace:: 172.168.0.10:5601
-.. |wazuh_manager_name| replace:: wazuh-manager01
+.. |wazuh_manager_ip| replace:: 172.23.61.103
+.. |wazuh_manager_name| replace:: hb-wazuh01

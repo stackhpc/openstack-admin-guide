@@ -12,7 +12,7 @@ cephadm: true
 ceph_managed: false
 
 # Whether the OpenStack deployment includes Ironic for bare metal compute.
-ironic: false
+ironic: true
 
 # Whether Ironic automated cleaning is enabled.
 ironic_automated_cleaning: true
