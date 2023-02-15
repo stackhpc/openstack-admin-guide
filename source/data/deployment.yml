@@ -9,7 +9,7 @@ ceph_ansible: false
 cephadm: true
 
 # Whether the Ceph deployment is managed by StackHPC
-ceph_managed: false
+ceph_managed: true
 
 # Whether the OpenStack deployment includes Ironic for bare metal compute.
 ironic: true
