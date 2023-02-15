@@ -1,31 +1,17 @@
 ---
 name: Build OpenStack admin guide
-on: 
+on:
   - pull_request
 jobs:
   build:
     name: Build OpenStack admin guide
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        deployment_yaml:
-          - __default__
-          - disable-ceph
-          - enable-ironic
-          - enable-ironic-no-cleaning-or-physnet
     steps:
       - uses: actions/checkout@v3
-
       - uses: actions/setup-python@v4
         with:
           python-version: '3.x'
-
       - name: Install Python dependencies
         run: pip3 install -r requirements.txt
-
-      - name: Copy deployment.yml into place
-        run: cp .github/workflows/deployment_yaml/${{ matrix.deployment_yaml }}.yml source/data/deployment.yml
-        if: matrix.deployment_yaml != '__default__'
-
       - name: Build HTML
-        run: make html
+        run: sphinx-build -b html source public
