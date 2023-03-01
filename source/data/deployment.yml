@@ -21,7 +21,7 @@ ironic_automated_cleaning: true
 kayobe_manages_physical_network: true
 
 # Whether the physical network is an EVPN fabric.
-physical_network_evpn: false
+physical_network_evpn: true
 
 # Whether the deployment includes Wazuh.
 wazuh: true
