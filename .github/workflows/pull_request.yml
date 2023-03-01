@@ -13,6 +13,7 @@ jobs:
           - disable-ceph
           - enable-ironic
           - enable-ironic-no-cleaning-or-physnet
+    if: github.repository == 'stackhpc/openstack-admin-guide' || matrix.deployment_yaml == '__default__'
     steps:
       - uses: actions/checkout@v3
 
