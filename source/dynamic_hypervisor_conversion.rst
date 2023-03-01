@@ -75,7 +75,6 @@ Kayobe commands
     etc/kayobe/environments/habrok/network-allocation.yml
     tools/hosts.csv
 
-
 #. Reconfigure leaf switch ports::
 
     kayobe physical network configure --group leaf-switches
@@ -123,8 +122,6 @@ Kayobe commands
 
     git add -u
     git commit -m "feat: convert baremetal to hypervisor"
-
-
 
 Baremetal conversion
 ====================
@@ -195,6 +192,6 @@ OpenStack commands
 
     openstack baremetal node set <hypervisor> --name <node> --resource-class baremetal
 
-7. Finally unset maintenance mode on the baremetal compute node::
+#. Finally unset maintenance mode on the baremetal compute node::
 
     openstack baremetal node maintenance unset <hypervisor>
