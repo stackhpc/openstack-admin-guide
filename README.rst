@@ -1,12 +1,7 @@
-Template of OpenStack administration guide
-==========================================
+Bateleur OpenStack administration guide
+=======================================
 
-Customise the guide
--------------------
-
-* Fork this repository
-* Customise source/vars.rst
-* Customise source/data/deployment.yml
+This documentation covers the Bateleur OpenStack cloud.
 
 Build the guide
 ---------------
