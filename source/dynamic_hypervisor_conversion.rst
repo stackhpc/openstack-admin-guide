@@ -17,7 +17,7 @@ This procedure will enable the conversion of baremetal nodes into hypervisors. T
 OpenStack commands
 ------------------
 
-#. Choose a node to convert. Check the node the node’s ``resource_class`` is equal to ``baremetal``. If not, pick another node::
+#. Choose a node to convert. Check the node’s ``resource_class`` is equal to ``baremetal``. If not, pick another node::
 
     openstack baremetal node show <node> -f value -c resource_class
 
@@ -208,7 +208,7 @@ OpenStack commands
 
     openstack network agent list --fit-width
 
-#. Delete both the OVN controller agent and OVN Metadata agent associated with the hypervisor
+#. Delete both the OVN controller agent and OVN Metadata agent associated with the hypervisor::
 
     openstack network agent delete <hypervisor>
     openstack network agent delete <metadata-uuid>
