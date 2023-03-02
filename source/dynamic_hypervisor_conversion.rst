@@ -3,9 +3,10 @@
 =============================
 Dynamic Hypervisor Conversion
 =============================
-
+This section describes procedures for changing the role of nodes in the cluster.
+This includes converting a hypervisor to a bare metal compute node and vice versa.
 .. note::
-    It is recommend that this process is carried out inside of `tmux` as window one can be used for OpenStack client and the a second window for Kayobe commands.
+    It is recommended that this process is carried out inside of ``tmux`` as window one can be used for OpenStack client and a second window for Kayobe commands.
 
 Hypervisor conversion
 =====================
@@ -46,7 +47,7 @@ Kayobe commands
 
 #. Rename the baremetal compute node by editing `tools/hosts.csv`::
 
-    sed -i -e 's/^<node>/<hypervisor>/' src/kayobe-config/tools/hosts.csv
+    sed -i -e 's/^<node>/<hypervisor>/' ~/deployment/src/kayobe-config/tools/hosts.csv
 
 #. Install `pandas` using `pip` for use by `gen-switch-interfaces.py`::
 
@@ -101,9 +102,10 @@ OpenStack commands
 Kayobe commands
 ---------------
 
-#. Add the IP address to the `provision_oc_ips` dict by editing `etc/kayobe/environments/habrok/network-allocation.yml`::
+#. Add the IP address to the `provision_oc_ips` dict by editing `~/deployment/src/kayobe-config/etc/kayobe/environments/habrok/network-allocation.yml`::
 
     provision_oc_ips:
+      <other hosts>
         <hypervisor>: <ip_address>
 
 #. Reconfigure the leaf switch ports to apply trunked VLANs::
@@ -194,4 +196,4 @@ OpenStack commands
 
 #. Finally unset maintenance mode on the baremetal compute node::
 
-    openstack baremetal node maintenance unset <hypervisor>
+    openstack baremetal node maintenance unset <node>
