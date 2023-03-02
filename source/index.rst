@@ -20,6 +20,7 @@ Contents
    introduction
    working_with_openstack
    working_with_kayobe
+   physical_network
    hardware_inventory_management
    ceph_storage
    managing_users_and_projects
