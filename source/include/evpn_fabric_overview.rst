@@ -3,7 +3,7 @@ EVPN VXLAN overview
 
 Ethernet Virtual Private Network (EVPN) is a standard technology that
 can be used for scaling layer 2 networks that is becoming increasingly
-popular. It combines a layer 3 (Equal Cost Multipath)
+popular. It combines a layer 3 (Equal-Cost Multi-Path)
 ECMP "underlay" fabric with VXLAN "overlays" that stretch VLANs between
 switches.
 
