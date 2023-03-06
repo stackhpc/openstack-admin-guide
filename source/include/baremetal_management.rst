@@ -96,20 +96,39 @@ Static switch configuration
 
    Static physical network configuration is managed via Kayobe.
 
-   .. TODO: Fill in the switch configuration
+   - A Virtual Routing and Forwarding (VRF) instance has been configured on the spine switches that routes between the workload
+     provisioning and internal API networks. This allows Ironic Python Agent to post data back to Ironic and Ironic Inspector
+     (Ironic and Inspector listen on the internal API network, whilst the node PXE boots on the workload provisioning network).
 
-   - Some initial switch configuration is required before networking generic switch can take over the management of an interface.
-     First, LACP must be configured on the switch ports attached to the baremetal node, e.g:
+   - This VRF is defined by the Kayobe switch configuration in |kayobe_config_source_url|.
 
-     .. code-block:: shell
+   - Controllers can reach the iDRACs via the workload out-of-band network.
+     This is so Ironic can perform power control actions, firmware updates, etc.
 
-     The interface is then partially configured:
+   - Controllers are attached to the following layer 2 networks:
 
-     .. code-block:: shell
+     * Overcloud provisioning (VLAN 1074, access)
+     * Workload out-of-band (VLAN 1075)
+     * Public (VLAN 16)
+     * Internal API (VLAN 1079)
+     * Ceph Storage (VLAN 1071)
+     * Tunnel (VLAN 1077)
+     * Workload provisioning network (VLAN 1069)
+     * Any VLAN networks defined in OpenStack. These are needed for DHCP services and routers to function correctly. An example of such a network is the "habrok slurm management" network (VLAN 1078).
 
-     For :ref:`ironic-node-discovery` to work, you need to manually switch the port to the provisioning network:
+   - The management (1G) network is not accessible to bare metal nodes, it is used only for iDRACs.
 
-     .. code-block:: shell
+   - Some initial switch configuration is required before the networking generic switch Neutron driver can take over the management of a port group.
+     This is defined by the Kayobe switch configuration in |kayobe_config_source_url|.
+     For example:
+
+     .. code-block:: yaml
+
+        "Ethernet 1/1/1":
+          description: hb-node026
+          config: "{{ switch_interface_config_baremetal }}"
+
+     This configuration is be applied to each switch in the leaf pair.
 
      **NOTE**: You only need to do this if Ironic isn't aware of the node.
 
@@ -127,17 +146,19 @@ Static switch configuration
 
        .. code-block::
 
-         kayobe physical network configure --interface-description-limit <description> --group switches --display --enable-discovery
+         kayobe physical network configure --interface-description-limit <description> --group leaf-switches --display --enable-discovery
 
        In this example, ``--display`` is used to preview the switch configuration without applying it.
 
-   .. TODO: Fill in information about how switches are configured in kayobe-config, with links
-
    - Configuration is done using a combination of ``group_vars`` and ``host_vars``
 
-.. ifconfig:: not deployment['kayobe_manages_physical_network']
+     * The bulk of the configuration is done with templates in the `group_vars for the different switches groups <https://github.com/rug-cit-hpc/rug-kayobe-config/tree/rug/wallaby/etc/kayobe/environments/habrok/inventory/group_vars>`__. This allows us to share
+       configuration templates across all switches.
+     * Each switch has host variables defined in `host_vars
+       <https://github.com/rug-cit-hpc/rug-kayobe-config/tree/rug/wallaby/etc/kayobe/environments/habrok/inventory/group_vars>`_
+       that provide configuration specific to the switch.
 
-   .. TODO: Fill in details about how physical network configuration is managed.
+.. ifconfig:: not deployment['kayobe_manages_physical_network']
 
    Static physical network configuration is not managed via Kayobe.
 
@@ -168,19 +189,24 @@ Commands that NGS will execute
 Networking Generic Switch is mainly concerned with toggling the ports onto different VLANs. It
 cannot fully configure the switch.
 
-.. TODO: Fill in the switch configuration
+NGS manages the high speed network, but not the management network.
 
-- Switching the port onto the provisioning network
-
-  .. code-block:: shell
-
-- Switching the port onto the tenant network.
+- Switching the port onto the high speed network
 
   .. code-block:: shell
 
-- When deleting the instance, the VLANs are removed from the port. Using:
+     interface ethernet 1/1/1
+     switchport mode access
+     switchport access vlan 1234
+     exit
+
+- Unplugging from the provisioning network
 
   .. code-block:: shell
+
+     interface ethernet 1/1/1
+     no switchport access vlan
+     exit
 
 NGS will save the configuration after each reconfiguration (by default).
 
@@ -204,6 +230,8 @@ Ironic node discovery
 
 Discovery is the process of PXE booting the nodes into the Ironic Python Agent (IPA) ramdisk. This ramdisk will collect hardware and networking configuration from the node in a process known as introspection. This data is used to populate the baremetal node object in Ironic. The series of steps you need to take to enrol a new node is as follows:
 
+- Ensure that all necessary `inspection rules <https://github.com/rug-cit-hpc/rug-kayobe-config/blob/rug/wallaby/etc/kayobe/inspector.yml>`_ are defined.
+
 - Configure credentials on the |bmc|. These are needed for Ironic to be able to perform power control actions.
 
 - Controllers should have network connectivity with the target |bmc|.
@@ -220,7 +248,7 @@ Discovery is the process of PXE booting the nodes into the Ironic Python Agent (
 
 .. ifconfig:: deployment['kayobe_manages_physical_network']
 
-   - Put the node onto the provisioning network by using the ``--enable discovery`` flag. See :ref:`static-switch-config`.
+   - Put the node onto the provisioning network using the ``--enable-discovery`` flag. See :ref:`static-switch-config`.
 
      * This is only necessary to initially discover the node. Once the node is in registered in Ironic,
        it will take over control of the the VLAN membership. See :ref:`dynamic-switch-configuration`.
@@ -231,17 +259,16 @@ Discovery is the process of PXE booting the nodes into the Ironic Python Agent (
 
    - Put the node onto the provisioning network.
 
-.. TODO: link to the relevant file in kayobe config
-
-- Add node to the kayobe inventory.
-
-.. TODO: Fill in details about necessary BIOS & RAID config
-
-- Apply any necesary BIOS & RAID configuration.
-
-.. TODO: Fill in details about how to trigger a PXE boot
+- Add node to the `kayobe inventory <https://github.com/rug-cit-hpc/rug-kayobe-config/blob/rug/wallaby/etc/kayobe/environments/habrok/inventory/hosts>`_.
 
 - PXE boot the node.
+
+  * Go to the node's |bmc| web interface to trigger discovery by network booting:
+
+      - Start up a Virtual Console
+      - Boot -> PXE
+      - Power -> Power On System (or Reset System if already powered on)
+      - To debug, view the HTML5 console as the node boots
 
 .. _tor-switch-configuration:
 
@@ -250,8 +277,9 @@ Top of Rack (ToR) switch configuration
 
 Networking Generic Switch must be aware of the Top-of-Rack switch connected to the new node.
 Switches managed by NGS are configured in ``ml2_conf.ini``.
-
-.. TODO: Fill in details about how switches are added to NGS config in kayobe-config
+This file is generated based on the ``kolla_neutron_ml2_generic_switch_hosts``
+and ``kolla_neutron_ml2_generic_switch_extra`` variables in `neutron.yml
+<https://github.com/rug-cit-hpc/rug-kayobe-config/blob/rug/wallaby/etc/kayobe/environments/habrok/neutron.yml>`_.
 
 After adding switches to the NGS configuration, Neutron must be redeployed.
 
@@ -266,3 +294,20 @@ Considerations when booting baremetal compared to VMs
 
 - Instances take much longer to provision (expect at least 15 mins)
 - When booting an instance use one of the flavors that maps to a baremetal node via the RESOURCE_CLASS configured on the flavor.
+
+Deploy templates/traits
+-----------------------
+
+Ironic `deploy templates
+<https://docs.openstack.org/ironic/latest/admin/node-deployment.html>`__ is a
+feature that allows for dynamically configuring bare metal nodes at deployment
+time, based on metadata provided by the Nova flavor.
+This `OpenStack summit presentation <https://www.youtube.com/watch?v=DrQcTljx_eM>`__ explains how it works.
+
+The Bateleur system uses deploy templates to enable or disable hyperthreading.
+Bare metal compute nodes have hyperthreading disabled, while hypervisors have hyperthreading enabled.
+
+This relies on two traits, ``CUSTOM_HYPERTHREADING_ENABLED`` and ``CUSTOM_HYPERTHREADING_DISABLED``, as well as two corresponding deploy templates.
+Bare metal nodes are marked as supporting both traits via an `inspection rule <https://github.com/rug-cit-hpc/rug-kayobe-config/blob/rug/wallaby/etc/kayobe/inspector.yml>`__.
+Baremetal Nova flavors are marked as `requiring <https://github.com/rug-cit-hpc/rug-config/blob/b56559574f96997facd9e8133c708efef3277178/etc/openstack-config/openstack-config.yml#L498>`__ the ``CUSTOM_HYPERTHREADING_DISABLED`` trait, while the hypervisor flavor is marked as `requiring <https://github.com/rug-cit-hpc/rug-config/blob/b56559574f96997facd9e8133c708efef3277178/etc/openstack-config/openstack-config.yml#L550>`__ the ``CUSTOM_HYPERTHREADING_ENABLED`` trait.
+A deploy template is `registered in Ironic <https://github.com/rug-cit-hpc/rug-config/blob/b56559574f96997facd9e8133c708efef3277178/etc/openstack-config/openstack-config.yml#L724>`__ for each of these traits.
