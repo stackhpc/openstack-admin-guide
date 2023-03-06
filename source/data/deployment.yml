@@ -31,3 +31,6 @@ wazuh_managed: true
 
 # Whether the Wazuh deployment is handled via Ansible.
 wazuh_ansible: true
+
+# CI/CD provider. Options are 'none' and 'github'.
+ci_cd: 'github'

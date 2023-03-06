@@ -29,6 +29,7 @@ Contents
    customising_deployment
    gpus_in_openstack
    baremetal_management
+   ci_cd
    rally_and_tempest
 
 Indices and search
