@@ -30,6 +30,7 @@ Contents
    gpus_in_openstack
    baremetal_management
    rally_and_tempest
+   dynamic_hypervisor_conversion
 
 Indices and search
 ==================
