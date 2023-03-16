@@ -31,6 +31,23 @@ and control plane hosts through the provisioning network
 
 |control_host_access|
 
+Deployment Secrets
+------------------
+
+The |project_name| Kayobe configuration uses Ansible Vault to store secrets
+such as IPMI credentials, Ceph account keys and OpenStack service credentials.
+
+The vault of deployment secrets is protected by a password, which
+conventionally is stored in a (mode 0400) file in the user home directory.
+
+An easy way to manage the vault password is to update ``.bash_profile`` to add
+a command such as:
+
+.. code-block:: console
+   :substitutions:
+
+   kayobe# export KAYOBE_VAULT_PASSWORD=$(cat |vault_password_file_path|)
+
 Making a Kayobe Checkout
 ------------------------
 
@@ -39,7 +56,7 @@ A Kayobe checkout is made on the Ansible control host.
 A Kayobe development environment can easily be set up using a script called
 ``beokay``, for example. This command will need the ``KAYOBE_VAULT_PASSWORD``
 environment variable to be set when secrets are encrypted with Ansible Vault.
-See the next section for details.
+See the previous section for details.
 
 .. code-block:: console
    :substitutions:
@@ -67,23 +84,6 @@ Set up any dependencies needed on the control host:
 .. code-block:: console
 
    kayobe# kayobe control host bootstrap
-
-Deployment Secrets
-------------------
-
-The |project_name| Kayobe configuration uses Ansible Vault to store secrets
-such as IPMI credentials, Ceph account keys and OpenStack service credentials.
-
-The vault of deployment secrets is protected by a password, which
-conventionally is stored in a (mode 0400) file in the user home directory.
-
-An easy way to manage the vault password is to update ``.bash_profile`` to add
-a command such as:
-
-.. code-block:: console
-   :substitutions:
-
-   kayobe# export KAYOBE_VAULT_PASSWORD=$(cat |vault_password_file_path|)
 
 Verifying Changes Before Applying
 ---------------------------------
