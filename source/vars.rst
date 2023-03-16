@@ -48,7 +48,7 @@
 .. |support_level| replace:: standard support
 .. |tempest_recipes| replace:: https://github.com/stackhpc/tempest-recipes.git
 .. |tls_setup| replace:: TLS is implemented using a wildcard certificate available for ``*.hb-openstack.hpc.rug.nl``.
-.. |vault_password_file_path| replace:: ~/vault-password
+.. |vault_password_file_path| replace:: ~/vault.pass
 .. |wazuh_manager_url| replace:: https://195.169.22.9:5601
 .. |wazuh_manager_ip| replace:: 172.23.9.248
 .. |wazuh_manager_name| replace:: hb-wazuh01
