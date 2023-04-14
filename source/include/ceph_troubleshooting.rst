@@ -1,22 +1,26 @@
 Investigating a Failed Ceph Drive
 ---------------------------------
 
-After deployment, when a drive fails it may cause OSD crashes in Ceph.
-If Ceph detects crashed OSDs, it will go into `HEALTH_WARN` state.
+A failing drive in a Ceph cluster will cause OSD daemon to crash.
+In this case Ceph will go into `HEALTH_WARN` state.
 Ceph can report details about failed OSDs by running:
+
+.. code-block:: console
+
+   ceph# ceph health detail
 
 .. ifconfig:: deployment['cephadm']
 
    .. note ::
 
-      Remember to run ceph/rbd commands after issuing ``cephadm shell`` or
-      installing ceph clients.
-      It is also important to run the commands on the hosts with _admin label
-      (Ceph monitors by default).
-
-.. code-block:: console
-
-   ceph# ceph health detail
+      Remember to run ceph/rbd commands from within ``cephadm shell``
+      (preferred method) or after installing Ceph client. Details in the
+      official `documentation <https://docs.ceph.com/en/quincy/cephadm/install/#enable-ceph-cli>`__.
+      It is also required that the host where commands are executed has admin
+      Ceph keyring present - easiest to achieve by applying
+      `_admin <https://docs.ceph.com/en/quincy/cephadm/host-management/#special-host-labels>`__
+      label (Ceph MON servers have it by default when using
+      `StackHPC Cephadm collection <https://github.com/stackhpc/ansible-collection-cephadm>`__).
 
 A failed OSD will also be reported as down by running:
 
@@ -26,7 +30,7 @@ A failed OSD will also be reported as down by running:
 
 Note the ID of the failed OSD.
 
-The failed hardware device is logged by the Linux kernel:
+The failed disk is usually logged by the Linux kernel too:
 
 .. code-block:: console
 
