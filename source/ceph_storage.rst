@@ -16,11 +16,6 @@ Ceph Storage
 
    The Ceph deployment is not managed by StackHPC Ltd.
 
-Troubleshooting
-===============
-
-.. include:: include/ceph_troubleshooting.rst
-
 Working with Ceph deployment tool
 =================================
 
@@ -31,3 +26,13 @@ Working with Ceph deployment tool
 .. ifconfig:: deployment['cephadm']
 
    .. include:: include/cephadm.rst
+
+Operations
+==========
+
+.. include:: include/ceph_operations.rst
+
+Troubleshooting
+===============
+
+.. include:: include/ceph_troubleshooting.rst
