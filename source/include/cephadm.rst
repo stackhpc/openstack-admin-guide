@@ -34,14 +34,17 @@ cephadm based playbooks utilising stackhpc.cephadm Ansible Galaxy collection.
 Running Ceph commands
 =====================
 
-Ceph commands can be run via ``cephadm shell`` utility container:
+Ceph commands are usually run inside a ``cephadm shell`` utility container:
 
 .. code-block:: console
 
    ceph# cephadm shell
 
-This command will be only successful on ``mons`` group members (the admin key
-is copied only to those nodes).
+Operating a cluster requires a keyring with an admin access to be available for Ceph
+commands. Cephadm will copy such keyring to the nodes carrying
+`_admin <https://docs.ceph.com/en/quincy/cephadm/host-management/#special-host-labels>`__
+label - present on MON servers by default when using
+`StackHPC Cephadm collection <https://github.com/stackhpc/ansible-collection-cephadm>`__.
 
 Adding a new storage node
 =========================
