@@ -7,7 +7,7 @@ Support for GPUs in OpenStack
 NVIDIA Virtual GPU
 ##################
 
-Bios configuration
+BIOS configuration
 ------------------
 
 Intel
