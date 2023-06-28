@@ -328,7 +328,7 @@ using the image supplied on the NVIDIA Licensing portal. This can be done on the
 requirements are:
 
 * All tenants wishing to use GPU based instances must have network connectivity to this machine. (network licensing)
-  - It is possible to configured node locked licensing where tenants do not need access to the license server
+  - It is possible to configure node locked licensing where tenants do not need access to the license server
 * Satisfy minimum requirements detailed `here <https://docs.nvidia.com/license-system/dls/2.1.0/nvidia-dls-user-guide/index.html#dls-virtual-appliance-platform-requirements>`__.
 
 The official documentation for configuring the instance
