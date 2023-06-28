@@ -124,7 +124,7 @@ Create a new playbook or update an existing on to apply the roles:
               kayobe_needs_reboot: true
 
       - name: Reboot when required
-        hosts: overcloud
+        hosts: iommu:vgpu
         vars:
           # This playbook will execute after nodes are deployed
           # and before overcloud host configure - we can't assume
@@ -157,7 +157,7 @@ Configure the location of the NVIDIA driver:
 Configure the VGPU devices:
 
 .. code-block:: yaml
-   :caption: $KAYOBE_CONFIG_PATH/ansible/group_vars/compute_vgpu/vgpu
+   :caption: $KAYOBE_CONFIG_PATH/inventory/group_vars/compute_vgpu/vgpu
 
     #nvidia-692 GRID A100D-4C
     #nvidia-693 GRID A100D-8C
@@ -299,7 +299,7 @@ Openstack flavors
 
 Define some flavors that request the resource class that was configured in nova.conf.
 An example definition, that can be used with ``openstack.cloud.compute_flavor`` Ansible module,
-is show below:
+is shown below:
 
 .. code-block:: yaml
 
