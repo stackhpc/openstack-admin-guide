@@ -57,7 +57,7 @@ will need to set the ``vgpu_driver_url`` configuration option to this value:
 .. code:: yaml
 
    # URL of GRID driver in pulp
-   vgpu_driver_url: "http://{{ pulp_url }}/pulp/content/nvidia/NVIDIA-GRID-Linux-KVM-525.105.14-525.105.17-528.89.zip"
+   vgpu_driver_url: "{{ pulp_url }}/pulp/content/nvidia/NVIDIA-GRID-Linux-KVM-525.105.14-525.105.17-528.89.zip"
 
 See :ref:`NVIDIA Role Configuration`.
 
@@ -125,12 +125,6 @@ Create a new playbook or update an existing on to apply the roles:
 
       - name: Reboot when required
         hosts: iommu:vgpu
-        vars:
-          # This playbook will execute after nodes are deployed
-          # and before overcloud host configure - we can't assume
-          # users and venvs exist.
-          ansible_user: "cloud-user"
-          ansible_python_interpreter: "/usr/bin/python3"
         tags:
           - reboot
         tasks:
@@ -198,6 +192,21 @@ Configure the VGPU devices:
 Running the playbook
 ^^^^^^^^^^^^^^^^^^^^
 
+The playbook defined in the :ref:`previous step<NVIDIA OS Configuration>`
+should be run after `kayobe overcloud host configure` has completed. This will
+ensure the host has been fully bootstrapped. With default settings, internet
+connectivity is required to download `MIG Partiton Editor for NVIDIA GPUs`. If
+this is not desirable, you can override the one of the following variables
+(depending on host OS):
+
+.. code-block:: yaml
+   :caption: $KAYOBE_CONFIG_PATH/inventory/group_vars/compute_vgpu/vgpu
+
+   vgpu_nvidia_mig_manager_rpm_url: "https://github.com/NVIDIA/mig-parted/releases/download/v0.5.1/nvidia-mig-manager-0.5.1-1.x86_64.rpm"
+   vgpu_nvidia_mig_manager_deb_url: "https://github.com/NVIDIA/mig-parted/releases/download/v0.5.1/nvidia-mig-manager_0.5.1-1_amd64.deb"
+
+For example, you may wish to upload these artifacts to the local pulp.
+
 Run the playbook that you defined earlier:
 
 .. code-block:: shell
@@ -206,6 +215,8 @@ Run the playbook that you defined earlier:
 
 Note: This will reboot the hosts on first run.
 
+The playbook may be added as a hook in ``$KAYOBE_CONFIG_PATH/hooks/overcloud-host-configure/post.d``; this will
+ensure you do not forget to run it when hosts are enrolled in the future.
 
 Kolla-Ansible configuration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
