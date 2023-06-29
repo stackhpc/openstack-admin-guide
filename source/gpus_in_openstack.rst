@@ -134,9 +134,48 @@ Create a new playbook or update an existing on to apply the roles:
             become: true
             when: kayobe_needs_reboot | default(false) | bool
 
+Ansible Inventory Configuration
+-------------------------------
+
+Add some hosts into the ``vgpu`` group. The example below maps two custom
+compute groups, ``compute_multi_instance_gpu`` and ``compute_vgpu``,
+into the ``vgpu`` group:
+
+.. code-block:: yaml
+   :caption: $KAYOBE_CONFIG_PATH/inventory/custom
+
+    [compute]
+    [compute_multi_instance_gpu]
+    [compute_vgpu]
+
+    [vgpu:children]
+    compute_multi_instance_gpu
+    compute_vgpu
+
+    [iommu:children]
+    vgpu
+
+Having multiple groups is useful if you want to be able to do conditional
+templating in ``nova.conf`` (see :ref:`NVIDIA Kolla Ansible
+Configuration`). Since the vgpu role requires iommu to be enabled, all of the
+hosts in the ``vgpu`` group are also added to the ``iommu`` group.
+
+If using bifrost and the ``kayobe overcloud inventory discover`` mechanism,
+hosts can automatically be mapped to these groups by configuring
+``overcloud_group_hosts_map``:
+
+.. code-block:: yaml
+   :caption: ``$KAYOBE_CONFIG_PATH/overcloud.yml``
+
+    overcloud_group_hosts_map:
+      compute_vgpu:
+        - "computegpu000"
+      compute_mutli_instance_gpu:
+        - "computegpu001"
+
 .. _NVIDIA Role Configuration:
 
-Role configuration
+Role Configuration
 ^^^^^^^^^^^^^^^^^^
 
 Configure the location of the NVIDIA driver:
@@ -218,6 +257,8 @@ Note: This will reboot the hosts on first run.
 The playbook may be added as a hook in ``$KAYOBE_CONFIG_PATH/hooks/overcloud-host-configure/post.d``; this will
 ensure you do not forget to run it when hosts are enrolled in the future.
 
+.. _NVIDIA Kolla Ansible Configuration:
+
 Kolla-Ansible configuration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -227,18 +268,27 @@ can be passed through to guests:
 .. code-block::
    :caption: $KAYOBE_CONFIG_PATH/kolla/config/nova/nova-compute.conf
 
-    {% if inventory_hostname in groups['compute_gpu_a100'] %}
+    {% if inventory_hostname in groups['compute_multi_instance_gpu'] %}
     [devices]
-    enabled_mdev_types = nvidia-700, nvidia-699, nvidia-697
+    enabled_mdev_types = nvidia-700, nvidia-699
+
     [mdev_nvidia-700]
-    device_addresses = 0000:17:00.4,0000:17:00.5,0000:17:00.6
+    device_addresses = 0000:21:00.4,0000:21:00.5,0000:21:00.6,0000:81:00.4,0000:81:00.5,0000:81:00.6
     mdev_class = CUSTOM_NVIDIA_700
+
     [mdev_nvidia-699]
-    device_addresses = 0000:17:00.7
+    device_addresses = 0000:21:00.7,0000:81:00.7
     mdev_class = CUSTOM_NVIDIA_699
+
+    {% elif inventory_hostname in groups['compute_vgpu'] %}
+    [devices]
+    enabled_mdev_types = nvidia-697
+
     [mdev_nvidia-697]
-    device_addresses = 0000:65:00.4,0000:65:00.5
-    mdev_class = CUSTOM_NVIDIA_697
+    device_addresses = 0000:21:00.4,0000:21:00.5,0000:81:00.4,0000:81:00.5
+    # Custom resource classes don't work when you only have single resource type.
+    mdev_class = VGPU
+
     {% endif %}
 
 You will need to adjust the PCI addresses to match the virtual function
