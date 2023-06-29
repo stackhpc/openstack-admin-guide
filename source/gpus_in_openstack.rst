@@ -195,7 +195,7 @@ Running the playbook
 The playbook defined in the :ref:`previous step<NVIDIA OS Configuration>`
 should be run after `kayobe overcloud host configure` has completed. This will
 ensure the host has been fully bootstrapped. With default settings, internet
-connectivity is required to download `MIG Partiton Editor for NVIDIA GPUs`. If
+connectivity is required to download `MIG Partition Editor for NVIDIA GPUs`. If
 this is not desirable, you can override the one of the following variables
 (depending on host OS):
 
