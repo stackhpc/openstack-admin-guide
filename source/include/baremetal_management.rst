@@ -259,7 +259,13 @@ Discovery is a process used to automatically enrol new nodes in Ironic. It works
 
    - Put the node onto the provisioning network.
 
-- Add node to the `kayobe inventory <https://github.com/rug-cit-hpc/rug-kayobe-config/blob/rug/yoga/etc/kayobe/environments/habrok/inventory/hosts>`_.
+- Add node to the `kayobe inventory <https://github.com/rug-cit-hpc/rug-kayobe-config/blob/rug/yoga/etc/kayobe/environments/habrok/inventory/hosts>`__ in the appropriate group, e.g. ``baremetal-compute``.
+
+- Import a Dell server configuration profile for the node. This includes setting the correct NIC for PXE booting.
+
+  * ``pip install <kayobe-config>/requirements.txt``
+
+  * ``kayobe playbook run etc/kayobe/ansible/idrac-import-configuration.yml -l <node1,node2...>``
 
 - PXE boot the node.
 
