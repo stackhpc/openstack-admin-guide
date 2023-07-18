@@ -257,7 +257,10 @@ Discovery is a process used to automatically enrol new nodes in Ironic. It works
 
   * Use Kayobe to attempt to move the node to the ``available`` state.
 
-    ``kayobe baremetal compute provide --limit <node>``
+    .. code-block:: console
+
+       source etc/kolla/public-openrc.sh
+       kayobe baremetal compute provide --limit <node>
 
 - Once the node is in the ``available`` state, Nova will make the node available for scheduling. This happens periodically, and typically takes around a minute.
 
