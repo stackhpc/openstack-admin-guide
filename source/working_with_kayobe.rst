@@ -62,6 +62,14 @@ After making the checkout, source the virtualenv and Kayobe config environment v
    kayobe# source venvs/kayobe/bin/activate
    kayobe# source src/kayobe-config/kayobe-env
 
+If you are using a Kayobe environment, you will instead need to specify which
+environment to source. See the section Kayobe Environments for more details.
+
+.. code-block:: console
+   :substitutions:
+
+   kayobe# source src/kayobe-config/kayobe-env --environment <env-name>
+
 Set up any dependencies needed on the control host:
 
 .. code-block:: console
@@ -155,3 +163,55 @@ From the seed host, the Bifrost container may be entered:
    (bifrost-deploy)[root@seed bifrost-base]# baremetal node list
 
 .. Consider adding a section about configuring the physical network.
+
+Kayobe Environments
+-------------------
+
+Kayobe supports configuring multiple environments under
+``etc/kayobe/environments``. These can be used to reduce duplicated configs
+between systems. Any shared config can be defined under the base layer
+``etc/kayobe``, and any system-specific config lives under
+``etc/kayobe/environments/<env-name>``.
+
+To use a specific environment with Kayobe, make sure to source its environment
+variables:
+
+.. code-block:: console
+   :substitutions:
+
+   kayobe# source src/kayobe-config/kayobe-env --environment <env-name>
+
+The Kayobe inventory and configuration under the base layer ``etc/kayobe`` are
+merged automatically with the environment layer under
+``etc/kayobe/environments/<env-name>``. This means that files such as
+``globals.yml`` or any host/group vars can be defined either within or outside
+of the environment. The base layer variables will be set on every system, and
+any environment-specific variables will only be set on their systems. Variables
+defined under an environment will take precedence over those defined in the
+base layer.
+
+The Kolla inventory under the base layer ``etc/kayobe/kolla/inventory`` is also
+merged with the environment layer under
+``etc/kayobe/environments/<env-name>/kolla/inventory``. However, Kolla config
+files do not yet support this. As such, any shared configuration under
+``etc/kayobe/kolla/config`` will need to be symlinked into all environments
+under ``etc/kayobe/environments/<env-name>/kolla/config``. An additional caveat
+is that only symlinked directories are supported. So any shared individual
+files will unfortunately need to be duplicated in each environment.
+
+If the majority of your Kolla config is intended to be shared, it is currently
+recommended that you symlink the entire ``etc/kayobe/kolla/config`` directory,
+and then template any specific variables based on the environment sources. For
+example:
+
+.. code-block:: console
+
+   ---
+   {% if kayobe_environment == "env-us" %}
+   region: US
+   {% elif kayobe_environment == "env-uk" %}
+   region: UK
+   {% endif %}
+
+Please note that there is work ongoing to support the merging of Kolla
+configuration in the future.
