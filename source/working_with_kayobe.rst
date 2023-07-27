@@ -169,6 +169,9 @@ From the seed host, the Bifrost container may be entered:
 Kayobe Environments
 -------------------
 
+For the full details on using multiple environments, see the `Kayobe
+documentation <https://docs.openstack.org/kayobe/latest/multiple-environments.html>`_.
+
 Kayobe supports configuring multiple environments under
 ``etc/kayobe/environments``. These can be used to reduce duplicated configs
 between systems. Any shared config can be defined under the base layer
