@@ -1,19 +1,19 @@
-
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
     <title>Support for GPUs in OpenStack &#8212; OpenStack Administration Guide  documentation</title>
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
-    <script src="_static/doctools.js"></script>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b3523f8e" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=039e1c02" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=b3ba4146"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=4825356b"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Bare Metal Compute Hardware Management" href="baremetal_management.html" />
     <link rel="prev" title="Customising the OpenStack Deployment" href="customising_deployment.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
@@ -31,23 +31,615 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="support-for-gpus-in-openstack">
-<h1>Support for GPUs in OpenStack<a class="headerlink" href="#support-for-gpus-in-openstack" title="Permalink to this headline">¶</a></h1>
+  <section id="support-for-gpus-in-openstack">
+<h1>Support for GPUs in OpenStack<a class="headerlink" href="#support-for-gpus-in-openstack" title="Permalink to this heading">¶</a></h1>
+<section id="nvidia-virtual-gpu">
+<h2>NVIDIA Virtual GPU<a class="headerlink" href="#nvidia-virtual-gpu" title="Permalink to this heading">¶</a></h2>
+<section id="bios-configuration">
+<h3>BIOS configuration<a class="headerlink" href="#bios-configuration" title="Permalink to this heading">¶</a></h3>
+<section id="intel">
+<h4>Intel<a class="headerlink" href="#intel" title="Permalink to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Enable <cite>VT-x</cite> in the BIOS for virtualisation support.</p></li>
+<li><p>Enable <cite>VT-d</cite> in the BIOS for IOMMU support.</p></li>
+</ul>
+</section>
+<section id="dell">
+<h4>Dell<a class="headerlink" href="#dell" title="Permalink to this heading">¶</a></h4>
+<p>Enabling SR-IOV with <cite>racadm</cite>:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>/opt/dell/srvadmin/bin/idracadm7<span class="w"> </span><span class="nb">set</span><span class="w"> </span>BIOS.IntegratedDevices.SriovGlobalEnable<span class="w"> </span>Enabled
+/opt/dell/srvadmin/bin/idracadm7<span class="w"> </span>jobqueue<span class="w"> </span>create<span class="w"> </span>BIOS.Setup.1-1
+&lt;reboot&gt;
+</pre></div>
+</div>
+</section>
+</section>
+<section id="obtain-driver-from-nvidia-licensing-portal">
+<h3>Obtain driver from NVIDIA licensing portal<a class="headerlink" href="#obtain-driver-from-nvidia-licensing-portal" title="Permalink to this heading">¶</a></h3>
+<p>Download Nvidia GRID driver from <a class="reference external" href="https://docs.nvidia.com/grid/latest/grid-software-quick-start-guide/index.html#redeeming-pak-and-downloading-grid-software">here</a>
+(This requires a login). The file can either be placed on the <a class="reference internal" href="#nvidia-control-host"><span class="std std-ref">ansible control host</span></a> or <a class="reference internal" href="#nvidia-pulp"><span class="std std-ref">uploaded to pulp</span></a>.</p>
+</section>
+<section id="uploading-the-grid-driver-to-pulp">
+<span id="nvidia-pulp"></span><h3>Uploading the GRID driver to pulp<a class="headerlink" href="#uploading-the-grid-driver-to-pulp" title="Permalink to this heading">¶</a></h3>
+<p>Uploading the driver to pulp will make it possible to run kayobe from any host. This can be useful when
+running in a CI environment.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pulp<span class="w"> </span>artifact<span class="w"> </span>upload<span class="w"> </span>--file<span class="w"> </span>~/NVIDIA-GRID-Linux-KVM-525.105.14-525.105.17-528.89.zip
+pulp<span class="w"> </span>file<span class="w"> </span>content<span class="w"> </span>create<span class="w"> </span>--relative-path<span class="w"> </span><span class="s2">&quot;NVIDIA-GRID-Linux-KVM-525.105.14-525.105.17-528.89.zip&quot;</span><span class="w"> </span>--sha256<span class="w"> </span>c8e12c15b881df35e618bdee1f141cbfcc7e112358f0139ceaa95b48e20761e0
+pulp<span class="w"> </span>file<span class="w"> </span>repository<span class="w"> </span>create<span class="w"> </span>--name<span class="w"> </span>nvidia
+pulp<span class="w"> </span>file<span class="w"> </span>repository<span class="w"> </span>add<span class="w"> </span>--name<span class="w"> </span>nvidia<span class="w"> </span>--sha256<span class="w"> </span>c8e12c15b881df35e618bdee1f141cbfcc7e112358f0139ceaa95b48e20761e0<span class="w"> </span>--relative-path<span class="w"> </span><span class="s2">&quot;NVIDIA-GRID-Linux-KVM-525.105.14-525.105.17-528.89.zip&quot;</span>
+pulp<span class="w"> </span>file<span class="w"> </span>publication<span class="w"> </span>create<span class="w"> </span>--repository<span class="w"> </span>nvidia
+pulp<span class="w"> </span>file<span class="w"> </span>distribution<span class="w"> </span>update<span class="w"> </span>--name<span class="w"> </span>nvidia<span class="w"> </span>--base-path<span class="w"> </span>nvidia<span class="w"> </span>--repository<span class="w"> </span>nvidia
+</pre></div>
+</div>
+<p>The file will then be available at <code class="docutils literal notranslate"><span class="pre">&lt;pulp_url&gt;/pulp/content/nvidia/NVIDIA-GRID-Linux-KVM-525.105.14-525.105.17-528.89.zip</span></code>. You
+will need to set the <code class="docutils literal notranslate"><span class="pre">vgpu_driver_url</span></code> configuration option to this value:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># URL of GRID driver in pulp</span>
+<span class="nt">vgpu_driver_url</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;{{</span><span class="nv"> </span><span class="s">pulp_url</span><span class="nv"> </span><span class="s">}}/pulp/content/nvidia/NVIDIA-GRID-Linux-KVM-525.105.14-525.105.17-528.89.zip&quot;</span>
+</pre></div>
+</div>
+<p>See <a class="reference internal" href="#nvidia-role-configuration"><span class="std std-ref">Role Configuration</span></a>.</p>
+</section>
+<section id="placing-the-grid-driver-on-the-ansible-control-host">
+<span id="nvidia-control-host"></span><h3>Placing the GRID driver on the ansible control host<a class="headerlink" href="#placing-the-grid-driver-on-the-ansible-control-host" title="Permalink to this heading">¶</a></h3>
+<p>Copy the driver bundle to a known location on the ansible control host. Set the <code class="docutils literal notranslate"><span class="pre">vgpu_driver_url</span></code> configuration variable to reference this
+path using <code class="docutils literal notranslate"><span class="pre">file</span></code> as the url scheme e.g:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># Location of NVIDIA GRID driver on localhost</span>
+<span class="nt">vgpu_driver_url</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;file://{{</span><span class="nv"> </span><span class="s">lookup(&#39;env&#39;,</span><span class="nv"> </span><span class="s">&#39;HOME&#39;)</span><span class="nv"> </span><span class="s">}}/NVIDIA-GRID-Linux-KVM-525.105.14-525.105.17-528.89.zip&quot;</span>
+</pre></div>
+</div>
+<p>See <a class="reference internal" href="#nvidia-role-configuration"><span class="std std-ref">Role Configuration</span></a>.</p>
+</section>
+<section id="os-configuration">
+<span id="nvidia-os-configuration"></span><h3>OS Configuration<a class="headerlink" href="#os-configuration" title="Permalink to this heading">¶</a></h3>
+<p>Host OS configuration is done by using roles in the <a class="reference external" href="https://github.com/stackhpc/ansible-collection-linux">stackhpc.linux</a> ansible collection.</p>
+<p>Add the following to your ansible <code class="docutils literal notranslate"><span class="pre">requirements.yml</span></code>:</p>
+<div class="literal-block-wrapper docutils container" id="id1">
+<div class="code-block-caption"><span class="caption-text">$KAYOBE_CONFIG_PATH/ansible/requirements.yml</span><a class="headerlink" href="#id1" title="Permalink to this code">¶</a></div>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="w"> </span><span class="c1">#FIXME: Update to known release When VGPU and IOMMU roles have landed</span>
+<span class="w"> </span><span class="nt">collections</span><span class="p">:</span>
+<span class="w">   </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">stackhpc.linux</span>
+<span class="w">     </span><span class="nt">source</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">git+https://github.com/stackhpc/ansible-collection-linux.git,preemptive/vgpu-iommu</span>
+<span class="w">     </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">git</span>
+</pre></div>
+</div>
+</div>
+<p>Create a new playbook or update an existing on to apply the roles:</p>
+<div class="literal-block-wrapper docutils container" id="id2">
+<div class="code-block-caption"><span class="caption-text">$KAYOBE_CONFIG_PATH/ansible/host-configure.yml</span><a class="headerlink" href="#id2" title="Permalink to this code">¶</a></div>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">---</span>
+
+<span class="w">   </span><span class="l l-Scalar l-Scalar-Plain">- hosts</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">iommu</span>
+<span class="w">     </span><span class="l l-Scalar l-Scalar-Plain">tags</span><span class="p p-Indicator">:</span>
+<span class="w">       </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">iommu</span>
+<span class="w"> </span><span class="w w-Error">    </span><span class="nt">tasks</span><span class="p">:</span>
+<span class="w">       </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">import_role</span><span class="p">:</span>
+<span class="w">           </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">stackhpc.linux.iommu</span>
+<span class="w">     </span><span class="nt">handlers</span><span class="p">:</span>
+<span class="w">       </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">reboot</span>
+<span class="w">         </span><span class="nt">set_fact</span><span class="p">:</span>
+<span class="w">           </span><span class="nt">kayobe_needs_reboot</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+
+<span class="w"> </span><span class="w w-Error">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">hosts</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">vgpu</span>
+<span class="w">     </span><span class="nt">tags</span><span class="p">:</span>
+<span class="w">       </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">vgpu</span>
+<span class="w">     </span><span class="nt">tasks</span><span class="p">:</span>
+<span class="w">       </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">import_role</span><span class="p">:</span>
+<span class="w">           </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">stackhpc.linux.vgpu</span>
+<span class="w">     </span><span class="nt">handlers</span><span class="p">:</span>
+<span class="w">       </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">reboot</span>
+<span class="w">         </span><span class="nt">set_fact</span><span class="p">:</span>
+<span class="w">           </span><span class="nt">kayobe_needs_reboot</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+
+<span class="w">   </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Reboot when required</span>
+<span class="w">     </span><span class="nt">hosts</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">iommu:vgpu</span>
+<span class="w">     </span><span class="nt">tags</span><span class="p">:</span>
+<span class="w">       </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">reboot</span>
+<span class="w">     </span><span class="nt">tasks</span><span class="p">:</span>
+<span class="w">       </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Reboot</span>
+<span class="w">         </span><span class="nt">reboot</span><span class="p">:</span>
+<span class="w">           </span><span class="nt">reboot_timeout</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3600</span>
+<span class="w">         </span><span class="nt">become</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">         </span><span class="nt">when</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">kayobe_needs_reboot | default(false) | bool</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="ansible-inventory-configuration">
+<h3>Ansible Inventory Configuration<a class="headerlink" href="#ansible-inventory-configuration" title="Permalink to this heading">¶</a></h3>
+<p>Add some hosts into the <code class="docutils literal notranslate"><span class="pre">vgpu</span></code> group. The example below maps two custom
+compute groups, <code class="docutils literal notranslate"><span class="pre">compute_multi_instance_gpu</span></code> and <code class="docutils literal notranslate"><span class="pre">compute_vgpu</span></code>,
+into the <code class="docutils literal notranslate"><span class="pre">vgpu</span></code> group:</p>
+<div class="literal-block-wrapper docutils container" id="id3">
+<div class="code-block-caption"><span class="caption-text">$KAYOBE_CONFIG_PATH/inventory/custom</span><a class="headerlink" href="#id3" title="Permalink to this code">¶</a></div>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">compute</span><span class="p p-Indicator">]</span>
+<span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">compute_multi_instance_gpu</span><span class="p p-Indicator">]</span>
+<span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">compute_vgpu</span><span class="p p-Indicator">]</span>
+
+<span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">vgpu</span><span class="p p-Indicator">:</span><span class="nv">children</span><span class="p p-Indicator">]</span>
+<span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">compute_multi_instance_gpu</span>
+<span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">compute_vgpu</span>
+
+<span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">[iommu:children]</span>
+<span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">vgpu</span>
+</pre></div>
+</div>
+</div>
+<p>Having multiple groups is useful if you want to be able to do conditional
+templating in <code class="docutils literal notranslate"><span class="pre">nova.conf</span></code> (see <a class="reference internal" href="#nvidia-kolla-ansible-configuration"><span class="std std-ref">Kolla-Ansible configuration</span></a>). Since the vgpu role requires iommu to be enabled, all of the
+hosts in the <code class="docutils literal notranslate"><span class="pre">vgpu</span></code> group are also added to the <code class="docutils literal notranslate"><span class="pre">iommu</span></code> group.</p>
+<p>If using bifrost and the <code class="docutils literal notranslate"><span class="pre">kayobe</span> <span class="pre">overcloud</span> <span class="pre">inventory</span> <span class="pre">discover</span></code> mechanism,
+hosts can automatically be mapped to these groups by configuring
+<code class="docutils literal notranslate"><span class="pre">overcloud_group_hosts_map</span></code>:</p>
+<div class="literal-block-wrapper docutils container" id="id4">
+<div class="code-block-caption"><span class="caption-text"><code class="docutils literal notranslate"><span class="pre">$KAYOBE_CONFIG_PATH/overcloud.yml</span></code></span><a class="headerlink" href="#id4" title="Permalink to this code">¶</a></div>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="w"> </span><span class="nt">overcloud_group_hosts_map</span><span class="p">:</span>
+<span class="w">   </span><span class="nt">compute_vgpu</span><span class="p">:</span>
+<span class="w">     </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;computegpu000&quot;</span>
+<span class="w">   </span><span class="nt">compute_mutli_instance_gpu</span><span class="p">:</span>
+<span class="w">     </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;computegpu001&quot;</span>
+</pre></div>
+</div>
+</div>
+<section id="role-configuration">
+<span id="nvidia-role-configuration"></span><h4>Role Configuration<a class="headerlink" href="#role-configuration" title="Permalink to this heading">¶</a></h4>
+<p>Configure the location of the NVIDIA driver:</p>
+<div class="literal-block-wrapper docutils container" id="id5">
+<div class="code-block-caption"><span class="caption-text">$KAYOBE_CONFIG_PATH/vgpu.yml</span><a class="headerlink" href="#id5" title="Permalink to this code">¶</a></div>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">---</span>
+
+<span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">vgpu_driver_url</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="s">&quot;http://{{</span><span class="nv"> </span><span class="s">pulp_url</span><span class="nv"> </span><span class="s">}}/pulp/content/nvidia/NVIDIA-GRID-Linux-KVM-525.105.14-525.105.17-528.89.zip&quot;</span>
+</pre></div>
+</div>
+</div>
+<p>Configure the VGPU devices:</p>
+<div class="literal-block-wrapper docutils container" id="id6">
+<div class="code-block-caption"><span class="caption-text">$KAYOBE_CONFIG_PATH/inventory/group_vars/compute_vgpu/vgpu</span><a class="headerlink" href="#id6" title="Permalink to this code">¶</a></div>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="w"> </span><span class="c1">#nvidia-692 GRID A100D-4C</span>
+<span class="w"> </span><span class="c1">#nvidia-693 GRID A100D-8C</span>
+<span class="w"> </span><span class="c1">#nvidia-694 GRID A100D-10C</span>
+<span class="w"> </span><span class="c1">#nvidia-695 GRID A100D-16C</span>
+<span class="w"> </span><span class="c1">#nvidia-696 GRID A100D-20C</span>
+<span class="w"> </span><span class="c1">#nvidia-697 GRID A100D-40C</span>
+<span class="w"> </span><span class="c1">#nvidia-698 GRID A100D-80C</span>
+<span class="w"> </span><span class="c1">#nvidia-699 GRID A100D-1-10C</span>
+<span class="w"> </span><span class="c1">#nvidia-700 GRID A100D-2-20C</span>
+<span class="w"> </span><span class="c1">#nvidia-701 GRID A100D-3-40C</span>
+<span class="w"> </span><span class="c1">#nvidia-702 GRID A100D-4-40C</span>
+<span class="w"> </span><span class="c1">#nvidia-703 GRID A100D-7-80C</span>
+<span class="w"> </span><span class="c1">#nvidia-707 GRID A100D-1-10CME</span>
+<span class="w"> </span><span class="nt">vgpu_definitions</span><span class="p">:</span>
+<span class="w">     </span><span class="c1"># Configuring a MIG backed VGPU</span>
+<span class="w">     </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">pci_address</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;0000:17:00.0&quot;</span>
+<span class="w">       </span><span class="nt">virtual_functions</span><span class="p">:</span>
+<span class="w">         </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">mdev_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nvidia-700</span>
+<span class="w">           </span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+<span class="w">         </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">mdev_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nvidia-700</span>
+<span class="w">           </span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">         </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">mdev_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nvidia-700</span>
+<span class="w">           </span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+<span class="w">         </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">mdev_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nvidia-699</span>
+<span class="w">           </span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
+<span class="w">       </span><span class="nt">mig_devices</span><span class="p">:</span>
+<span class="w">         </span><span class="s">&quot;1g.10gb&quot;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">         </span><span class="s">&quot;2g.20gb&quot;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
+<span class="w">     </span><span class="c1"># Configuring a card in a time-sliced configuration (non-MIG backed)</span>
+<span class="w">     </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">pci_address</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;0000:65:00.0&quot;</span>
+<span class="w">       </span><span class="nt">virtual_functions</span><span class="p">:</span>
+<span class="w">         </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">mdev_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nvidia-697</span>
+<span class="w">           </span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+<span class="w">         </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">mdev_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nvidia-697</span>
+<span class="w">           </span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="running-the-playbook">
+<h4>Running the playbook<a class="headerlink" href="#running-the-playbook" title="Permalink to this heading">¶</a></h4>
+<p>The playbook defined in the <a class="reference internal" href="#nvidia-os-configuration"><span class="std std-ref">previous step</span></a>
+should be run after <cite>kayobe overcloud host configure</cite> has completed. This will
+ensure the host has been fully bootstrapped. With default settings, internet
+connectivity is required to download <cite>MIG Partition Editor for NVIDIA GPUs</cite>. If
+this is not desirable, you can override the one of the following variables
+(depending on host OS):</p>
+<div class="literal-block-wrapper docutils container" id="id7">
+<div class="code-block-caption"><span class="caption-text">$KAYOBE_CONFIG_PATH/inventory/group_vars/compute_vgpu/vgpu</span><a class="headerlink" href="#id7" title="Permalink to this code">¶</a></div>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">vgpu_nvidia_mig_manager_rpm_url</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;https://github.com/NVIDIA/mig-parted/releases/download/v0.5.1/nvidia-mig-manager-0.5.1-1.x86_64.rpm&quot;</span>
+<span class="nt">vgpu_nvidia_mig_manager_deb_url</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;https://github.com/NVIDIA/mig-parted/releases/download/v0.5.1/nvidia-mig-manager_0.5.1-1_amd64.deb&quot;</span>
+</pre></div>
+</div>
+</div>
+<p>For example, you may wish to upload these artifacts to the local pulp.</p>
+<p>Run the playbook that you defined earlier:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>kayobe<span class="w"> </span>playbook<span class="w"> </span>run<span class="w"> </span><span class="nv">$KAYOBE_CONFIG_PATH</span>/ansible/host-configure.yml
+</pre></div>
+</div>
+<p>Note: This will reboot the hosts on first run.</p>
+<p>The playbook may be added as a hook in <code class="docutils literal notranslate"><span class="pre">$KAYOBE_CONFIG_PATH/hooks/overcloud-host-configure/post.d</span></code>; this will
+ensure you do not forget to run it when hosts are enrolled in the future.</p>
+</section>
+<section id="kolla-ansible-configuration">
+<span id="nvidia-kolla-ansible-configuration"></span><h4>Kolla-Ansible configuration<a class="headerlink" href="#kolla-ansible-configuration" title="Permalink to this heading">¶</a></h4>
+<p>To use the mdev devices that were created, modify nova.conf to add a list of mdev devices that
+can be passed through to guests:</p>
+<div class="literal-block-wrapper docutils container" id="id8">
+<div class="code-block-caption"><span class="caption-text">$KAYOBE_CONFIG_PATH/kolla/config/nova/nova-compute.conf</span><a class="headerlink" href="#id8" title="Permalink to this code">¶</a></div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span> <span class="p">{</span><span class="o">%</span> <span class="k">if</span> <span class="n">inventory_hostname</span> <span class="ow">in</span> <span class="n">groups</span><span class="p">[</span><span class="s1">&#39;compute_multi_instance_gpu&#39;</span><span class="p">]</span> <span class="o">%</span><span class="p">}</span>
+ <span class="p">[</span><span class="n">devices</span><span class="p">]</span>
+ <span class="n">enabled_mdev_types</span> <span class="o">=</span> <span class="n">nvidia</span><span class="o">-</span><span class="mi">700</span><span class="p">,</span> <span class="n">nvidia</span><span class="o">-</span><span class="mi">699</span>
+
+ <span class="p">[</span><span class="n">mdev_nvidia</span><span class="o">-</span><span class="mi">700</span><span class="p">]</span>
+ <span class="n">device_addresses</span> <span class="o">=</span> <span class="mi">0000</span><span class="p">:</span><span class="mi">21</span><span class="p">:</span><span class="mf">00.4</span><span class="p">,</span><span class="mi">0000</span><span class="p">:</span><span class="mi">21</span><span class="p">:</span><span class="mf">00.5</span><span class="p">,</span><span class="mi">0000</span><span class="p">:</span><span class="mi">21</span><span class="p">:</span><span class="mf">00.6</span><span class="p">,</span><span class="mi">0000</span><span class="p">:</span><span class="mi">81</span><span class="p">:</span><span class="mf">00.4</span><span class="p">,</span><span class="mi">0000</span><span class="p">:</span><span class="mi">81</span><span class="p">:</span><span class="mf">00.5</span><span class="p">,</span><span class="mi">0000</span><span class="p">:</span><span class="mi">81</span><span class="p">:</span><span class="mf">00.6</span>
+ <span class="n">mdev_class</span> <span class="o">=</span> <span class="n">CUSTOM_NVIDIA_700</span>
+
+ <span class="p">[</span><span class="n">mdev_nvidia</span><span class="o">-</span><span class="mi">699</span><span class="p">]</span>
+ <span class="n">device_addresses</span> <span class="o">=</span> <span class="mi">0000</span><span class="p">:</span><span class="mi">21</span><span class="p">:</span><span class="mf">00.7</span><span class="p">,</span><span class="mi">0000</span><span class="p">:</span><span class="mi">81</span><span class="p">:</span><span class="mf">00.7</span>
+ <span class="n">mdev_class</span> <span class="o">=</span> <span class="n">CUSTOM_NVIDIA_699</span>
+
+ <span class="p">{</span><span class="o">%</span> <span class="k">elif</span> <span class="n">inventory_hostname</span> <span class="ow">in</span> <span class="n">groups</span><span class="p">[</span><span class="s1">&#39;compute_vgpu&#39;</span><span class="p">]</span> <span class="o">%</span><span class="p">}</span>
+ <span class="p">[</span><span class="n">devices</span><span class="p">]</span>
+ <span class="n">enabled_mdev_types</span> <span class="o">=</span> <span class="n">nvidia</span><span class="o">-</span><span class="mi">697</span>
+
+ <span class="p">[</span><span class="n">mdev_nvidia</span><span class="o">-</span><span class="mi">697</span><span class="p">]</span>
+ <span class="n">device_addresses</span> <span class="o">=</span> <span class="mi">0000</span><span class="p">:</span><span class="mi">21</span><span class="p">:</span><span class="mf">00.4</span><span class="p">,</span><span class="mi">0000</span><span class="p">:</span><span class="mi">21</span><span class="p">:</span><span class="mf">00.5</span><span class="p">,</span><span class="mi">0000</span><span class="p">:</span><span class="mi">81</span><span class="p">:</span><span class="mf">00.4</span><span class="p">,</span><span class="mi">0000</span><span class="p">:</span><span class="mi">81</span><span class="p">:</span><span class="mf">00.5</span>
+ <span class="c1"># Custom resource classes don&#39;t work when you only have single resource type.</span>
+ <span class="n">mdev_class</span> <span class="o">=</span> <span class="n">VGPU</span>
+
+ <span class="p">{</span><span class="o">%</span> <span class="n">endif</span> <span class="o">%</span><span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<p>You will need to adjust the PCI addresses to match the virtual function
+addresses. These can be obtained by checking the mdevctl configuration after
+running the role:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># mdevctl list</span>
+
+73269d0f-b2c9-438d-8f28-f9e4bc6c6995<span class="w"> </span><span class="m">0000</span>:17:00.4<span class="w"> </span>nvidia-700<span class="w"> </span>manual<span class="w"> </span><span class="o">(</span>defined<span class="o">)</span>
+dc352ef3-efeb-4a5d-a48e-912eb230bc76<span class="w"> </span><span class="m">0000</span>:17:00.5<span class="w"> </span>nvidia-700<span class="w"> </span>manual<span class="w"> </span><span class="o">(</span>defined<span class="o">)</span>
+a464fbae-1f89-419a-a7bd-3a79c7b2eef4<span class="w"> </span><span class="m">0000</span>:17:00.6<span class="w"> </span>nvidia-700<span class="w"> </span>manual<span class="w"> </span><span class="o">(</span>defined<span class="o">)</span>
+f3b823d3-97c8-4e0a-ae1b-1f102dcb3bce<span class="w"> </span><span class="m">0000</span>:17:00.7<span class="w"> </span>nvidia-699<span class="w"> </span>manual<span class="w"> </span><span class="o">(</span>defined<span class="o">)</span>
+330be289-ba3f-4416-8c8a-b46ba7e51284<span class="w"> </span><span class="m">0000</span>:65:00.4<span class="w"> </span>nvidia-700<span class="w"> </span>manual<span class="w"> </span><span class="o">(</span>defined<span class="o">)</span>
+1ba5392c-c61f-4f48-8fb1-4c6b2bbb0673<span class="w"> </span><span class="m">0000</span>:65:00.5<span class="w"> </span>nvidia-700<span class="w"> </span>manual<span class="w"> </span><span class="o">(</span>defined<span class="o">)</span>
+f6868020-eb3a-49c6-9701-6c93e4e3fa9c<span class="w"> </span><span class="m">0000</span>:65:00.6<span class="w"> </span>nvidia-700<span class="w"> </span>manual<span class="w"> </span><span class="o">(</span>defined<span class="o">)</span>
+00501f37-c468-5ba4-8be2-8d653c4604ed<span class="w"> </span><span class="m">0000</span>:65:00.7<span class="w"> </span>nvidia-699<span class="w"> </span>manual<span class="w"> </span><span class="o">(</span>defined<span class="o">)</span>
+</pre></div>
+</div>
+<p>The mdev_class maps to a resource class that you can set in your flavor definition.
+Note that if you only define a single mdev type on a given hypervisor, then the
+mdev_class configuration option is silently ignored and it will use the <code class="docutils literal notranslate"><span class="pre">VGPU</span></code>
+resource class (bug?).</p>
+<p>Map through the kayobe inventory groups into kolla:</p>
+<div class="literal-block-wrapper docutils container" id="id9">
+<div class="code-block-caption"><span class="caption-text">$KAYOBE_CONFIG_PATH/kolla.yml</span><a class="headerlink" href="#id9" title="Permalink to this code">¶</a></div>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="w"> </span><span class="nt">kolla_overcloud_inventory_top_level_group_map</span><span class="p">:</span>
+<span class="w">   </span><span class="nt">control</span><span class="p">:</span>
+<span class="w">     </span><span class="nt">groups</span><span class="p">:</span>
+<span class="w">       </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">controllers</span>
+<span class="w">   </span><span class="nt">network</span><span class="p">:</span>
+<span class="w">     </span><span class="nt">groups</span><span class="p">:</span>
+<span class="w">       </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">network</span>
+<span class="w">   </span><span class="nt">compute_cpu</span><span class="p">:</span>
+<span class="w">     </span><span class="nt">groups</span><span class="p">:</span>
+<span class="w">       </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">compute_cpu</span>
+<span class="w">   </span><span class="nt">compute_gpu</span><span class="p">:</span>
+<span class="w">     </span><span class="nt">groups</span><span class="p">:</span>
+<span class="w">       </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">compute_gpu</span>
+<span class="w">   </span><span class="nt">compute_multi_instance_gpu</span><span class="p">:</span>
+<span class="w">     </span><span class="nt">groups</span><span class="p">:</span>
+<span class="w">       </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">compute_multi_instance_gpu</span>
+<span class="w">   </span><span class="nt">compute_vgpu</span><span class="p">:</span>
+<span class="w">     </span><span class="nt">groups</span><span class="p">:</span>
+<span class="w">       </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">compute_vgpu</span>
+<span class="w">   </span><span class="nt">compute</span><span class="p">:</span>
+<span class="w">     </span><span class="nt">groups</span><span class="p">:</span>
+<span class="w">       </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">compute</span>
+<span class="w">   </span><span class="nt">monitoring</span><span class="p">:</span>
+<span class="w">     </span><span class="nt">groups</span><span class="p">:</span>
+<span class="w">       </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">monitoring</span>
+<span class="w">   </span><span class="nt">storage</span><span class="p">:</span>
+<span class="w">     </span><span class="nt">groups</span><span class="p">:</span>
+<span class="w">       </span><span class="s">&quot;{{</span><span class="nv"> </span><span class="s">kolla_overcloud_inventory_storage_groups</span><span class="nv"> </span><span class="s">}}&quot;</span>
+</pre></div>
+</div>
+</div>
+<p>Where the <code class="docutils literal notranslate"><span class="pre">compute_&lt;suffix&gt;</span></code> groups have been added to the kayobe defaults.</p>
+<p>You will need to reconfigure nova for this change to be applied:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>kayobe<span class="w"> </span>overcloud<span class="w"> </span>service<span class="w"> </span>deploy<span class="w"> </span>-kt<span class="w"> </span>nova<span class="w"> </span>--kolla-limit<span class="w"> </span>compute_vgpu
+</pre></div>
+</div>
+</section>
+<section id="openstack-flavors">
+<h4>Openstack flavors<a class="headerlink" href="#openstack-flavors" title="Permalink to this heading">¶</a></h4>
+<p>Define some flavors that request the resource class that was configured in nova.conf.
+An example definition, that can be used with <code class="docutils literal notranslate"><span class="pre">openstack.cloud.compute_flavor</span></code> Ansible module,
+is shown below:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">vgpu_a100_2g_20gb</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;vgpu.a100.2g.20gb&quot;</span>
+<span class="w">  </span><span class="nt">ram</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">65536</span>
+<span class="w">  </span><span class="nt">disk</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">30</span>
+<span class="w">  </span><span class="nt">vcpus</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8</span>
+<span class="w">  </span><span class="nt">is_public</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="w">  </span><span class="nt">extra_specs</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">hw:cpu_policy</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;dedicated&quot;</span>
+<span class="w">    </span><span class="nt">hw:cpu_thread_policy</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;prefer&quot;</span>
+<span class="w">    </span><span class="nt">hw:mem_page_size</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1GB&quot;</span>
+<span class="w">    </span><span class="nt">hw:cpu_sockets</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+<span class="w">    </span><span class="nt">hw:numa_nodes</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8</span>
+<span class="w">    </span><span class="nt">hw_rng:allowed</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;True&quot;</span>
+<span class="w">    </span><span class="nt">resources:CUSTOM_NVIDIA_700</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1&quot;</span>
+</pre></div>
+</div>
+<p>You now should be able to launch a VM with this flavor.</p>
+</section>
+<section id="nvidia-license-server">
+<h4>NVIDIA License Server<a class="headerlink" href="#nvidia-license-server" title="Permalink to this heading">¶</a></h4>
+<p>The Nvidia delegated license server is a virtual machine based appliance. You simply need to boot an instance
+using the image supplied on the NVIDIA Licensing portal. This can be done on the OpenStack cloud itself. The
+requirements are:</p>
+<ul class="simple">
+<li><p>All tenants wishing to use GPU based instances must have network connectivity to this machine. (network licensing)
+- It is possible to configure node locked licensing where tenants do not need access to the license server</p></li>
+<li><p>Satisfy minimum requirements detailed <a class="reference external" href="https://docs.nvidia.com/license-system/dls/2.1.0/nvidia-dls-user-guide/index.html#dls-virtual-appliance-platform-requirements">here</a>.</p></li>
+</ul>
+<p>The official documentation for configuring the instance
+can be found <a class="reference external" href="https://docs.nvidia.com/license-system/dls/2.1.0/nvidia-dls-user-guide/index.html#about-service-instances">here</a>.</p>
+<p>Below is a snippet of openstack-config for defining a project, and a security group that can be used for a non-HA deployment:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">secgroup_rules_nvidia_dls</span><span class="p">:</span>
+<span class="w">  </span><span class="c1"># Allow ICMP (for ping, etc.).</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">ethertype</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">IPv4</span>
+<span class="w">    </span><span class="nt">protocol</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">icmp</span>
+<span class="w">  </span><span class="c1"># Allow SSH.</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">ethertype</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">IPv4</span>
+<span class="w">    </span><span class="nt">protocol</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tcp</span>
+<span class="w">    </span><span class="nt">port_range_min</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">22</span>
+<span class="w">    </span><span class="nt">port_range_max</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">22</span>
+<span class="w">  </span><span class="c1"># https://docs.nvidia.com/license-system/latest/nvidia-license-system-user-guide/index.html</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">ethertype</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">IPv4</span>
+<span class="w">    </span><span class="nt">protocol</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tcp</span>
+<span class="w">    </span><span class="nt">port_range_min</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">443</span>
+<span class="w">    </span><span class="nt">port_range_max</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">443</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">ethertype</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">IPv4</span>
+<span class="w">    </span><span class="nt">protocol</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tcp</span>
+<span class="w">    </span><span class="nt">port_range_min</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span>
+<span class="w">    </span><span class="nt">port_range_max</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">ethertype</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">IPv4</span>
+<span class="w">    </span><span class="nt">protocol</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tcp</span>
+<span class="w">    </span><span class="nt">port_range_min</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">7070</span>
+<span class="w">    </span><span class="nt">port_range_max</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">7070</span>
+
+<span class="w">  </span><span class="nt">secgroup_nvidia_dls</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nvidia-dls</span>
+<span class="w">    </span><span class="nt">project</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;{{</span><span class="nv"> </span><span class="s">project_cloud_services.name</span><span class="nv"> </span><span class="s">}}&quot;</span>
+<span class="w">    </span><span class="nt">rules</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;{{</span><span class="nv"> </span><span class="s">secgroup_rules_nvidia_dls</span><span class="nv"> </span><span class="s">}}&quot;</span>
+
+<span class="w">  </span><span class="nt">openstack_security_groups</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;{{</span><span class="nv"> </span><span class="s">secgroup_nvidia_dls</span><span class="nv"> </span><span class="s">}}&quot;</span>
+
+<span class="w">  </span><span class="nt">project_cloud_services</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;cloud-services&quot;</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Internal</span><span class="nv"> </span><span class="s">Cloud</span><span class="nv"> </span><span class="s">services&quot;</span>
+<span class="w">    </span><span class="nt">project_domain</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">default</span>
+<span class="w">    </span><span class="nt">user_domain</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">default</span>
+<span class="w">    </span><span class="nt">users</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[]</span>
+<span class="w">    </span><span class="nt">quotas</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;{{</span><span class="nv"> </span><span class="s">quotas_project</span><span class="nv"> </span><span class="s">}}&quot;</span>
+</pre></div>
+</div>
+<p>Booting the VM:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Uploading the image and making it available in the cloud services project</span>
+$<span class="w"> </span>openstack<span class="w"> </span>image<span class="w"> </span>create<span class="w"> </span>--file<span class="w"> </span>nls-3.0.0-bios.qcow2<span class="w"> </span>nls-3.0.0-bios<span class="w"> </span>--disk-format<span class="w"> </span>qcow2
+$<span class="w"> </span>openstack<span class="w"> </span>image<span class="w"> </span>add<span class="w"> </span>project<span class="w"> </span>nls-3.0.0-bios<span class="w"> </span>cloud-services
+$<span class="w"> </span>openstack<span class="w"> </span>image<span class="w"> </span><span class="nb">set</span><span class="w"> </span>--accept<span class="w"> </span>nls-3.0.0-bios<span class="w"> </span>--project<span class="w"> </span>cloud-services
+$<span class="w"> </span>openstack<span class="w"> </span>image<span class="w"> </span>member<span class="w"> </span>list<span class="w"> </span>nls-3.0.0-bios
+
+<span class="c1"># Booting a server as the admin user in the cloud-services project. We pre-create the port so that</span>
+<span class="c1"># we can recreate it without changing the MAC address.</span>
+$<span class="w"> </span>openstack<span class="w"> </span>port<span class="w"> </span>create<span class="w"> </span>--mac-address<span class="w"> </span>fa:16:3e:a3:fd:19<span class="w"> </span>--network<span class="w"> </span>external<span class="w"> </span>nvidia-dls-1<span class="w"> </span>--project<span class="w"> </span>cloud-services
+$<span class="w"> </span>openstack<span class="w"> </span>role<span class="w"> </span>add<span class="w"> </span>member<span class="w"> </span>--project<span class="w"> </span>cloud-services<span class="w"> </span>--user<span class="w"> </span>admin
+$<span class="w"> </span><span class="nb">export</span><span class="w"> </span><span class="nv">OS_PROJECT_NAME</span><span class="o">=</span>cloud-services
+$<span class="w"> </span>openstack<span class="w"> </span>server<span class="w"> </span>group<span class="w"> </span>create<span class="w"> </span>nvidia-dls<span class="w"> </span>--policy<span class="w"> </span>anti-affinity
+$<span class="w"> </span>openstack<span class="w"> </span>server<span class="w"> </span>create<span class="w"> </span>--flavor<span class="w"> </span>8cpu-8gbmem-30gbdisk<span class="w"> </span>--image<span class="w"> </span>nls-3.0.0-bios<span class="w"> </span>--port<span class="w"> </span>nvidia-dls-1<span class="w"> </span>--hint<span class="w"> </span><span class="nv">group</span><span class="o">=</span>179dfa59-0947-4925-a0ff-b803bc0e58b2<span class="w"> </span>nvidia-dls-cci1-1<span class="w"> </span>--security-group<span class="w"> </span>nvidia-dls
+$<span class="w"> </span>openstack<span class="w"> </span>server<span class="w"> </span>add<span class="w"> </span>security<span class="w"> </span>group<span class="w"> </span>nvidia-dls-1<span class="w"> </span>nvidia-dls
+</pre></div>
+</div>
+</section>
+<section id="disk-image-builder-recipe-to-automatically-license-vgpu-on-boot">
+<h4>Disk image builder recipe to automatically license VGPU on boot<a class="headerlink" href="#disk-image-builder-recipe-to-automatically-license-vgpu-on-boot" title="Permalink to this heading">¶</a></h4>
+<p><a class="reference external" href="https://github.com/stackhpc/stackhpc-image-elements">stackhpc-image-elements</a> provides a <code class="docutils literal notranslate"><span class="pre">nvidia-vgpu</span></code>
+element to configure the nvidia-gridd service in VGPU mode. This allows you to boot VMs that automatically license themselves.
+Snippets of <code class="docutils literal notranslate"><span class="pre">openstack-config</span></code> that allow you to do this are shown below:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>image_rocky9_nvidia:
+<span class="w">  </span>name:<span class="w"> </span><span class="s2">&quot;Rocky9-NVIDIA&quot;</span>
+<span class="w">  </span>type:<span class="w"> </span>raw
+<span class="w">  </span>elements:
+<span class="w">    </span>-<span class="w"> </span><span class="s2">&quot;rocky-container&quot;</span>
+<span class="w">    </span>-<span class="w"> </span><span class="s2">&quot;rpm&quot;</span>
+<span class="w">    </span>-<span class="w"> </span><span class="s2">&quot;nvidia-vgpu&quot;</span>
+<span class="w">    </span>-<span class="w"> </span><span class="s2">&quot;cloud-init&quot;</span>
+<span class="w">    </span>-<span class="w"> </span><span class="s2">&quot;epel&quot;</span>
+<span class="w">    </span>-<span class="w"> </span><span class="s2">&quot;cloud-init-growpart&quot;</span>
+<span class="w">    </span>-<span class="w"> </span><span class="s2">&quot;selinux-permissive&quot;</span>
+<span class="w">    </span>-<span class="w"> </span><span class="s2">&quot;dhcp-all-interfaces&quot;</span>
+<span class="w">    </span>-<span class="w"> </span><span class="s2">&quot;vm&quot;</span>
+<span class="w">    </span>-<span class="w"> </span><span class="s2">&quot;extra-repos&quot;</span>
+<span class="w">    </span>-<span class="w"> </span><span class="s2">&quot;grub2&quot;</span>
+<span class="w">    </span>-<span class="w"> </span><span class="s2">&quot;stable-interface-names&quot;</span>
+<span class="w">    </span>-<span class="w"> </span><span class="s2">&quot;openssh-server&quot;</span>
+<span class="w">  </span>is_public:<span class="w"> </span>True
+<span class="w">  </span>packages:
+<span class="w">    </span>-<span class="w"> </span><span class="s2">&quot;dkms&quot;</span>
+<span class="w">    </span>-<span class="w"> </span><span class="s2">&quot;git&quot;</span>
+<span class="w">    </span>-<span class="w"> </span><span class="s2">&quot;tmux&quot;</span>
+<span class="w">    </span>-<span class="w"> </span><span class="s2">&quot;cuda-minimal-build-12-1&quot;</span>
+<span class="w">    </span>-<span class="w"> </span><span class="s2">&quot;cuda-demo-suite-12-1&quot;</span>
+<span class="w">    </span>-<span class="w"> </span><span class="s2">&quot;cuda-libraries-12-1&quot;</span>
+<span class="w">    </span>-<span class="w"> </span><span class="s2">&quot;cuda-toolkit&quot;</span>
+<span class="w">    </span>-<span class="w"> </span><span class="s2">&quot;vim-enhanced&quot;</span>
+<span class="w">  </span>env:
+<span class="w">    </span>DIB_CONTAINERFILE_NETWORK_DRIVER:<span class="w"> </span>host
+<span class="w">    </span>DIB_CONTAINERFILE_RUNTIME:<span class="w"> </span>docker
+<span class="w">    </span>DIB_RPMS:<span class="w"> </span><span class="s2">&quot;http://192.168.1.2:80/pulp/content/nvidia/nvidia-linux-grid-525-525.105.17-1.x86_64.rpm&quot;</span>
+<span class="w">    </span>YUM:<span class="w"> </span>dnf
+<span class="w">    </span>DIB_EXTRA_REPOS:<span class="w"> </span><span class="s2">&quot;https://developer.download.nvidia.com/compute/cuda/repos/rhel9/x86_64/cuda-rhel9.repo&quot;</span>
+<span class="w">    </span>DIB_NVIDIA_VGPU_CLIENT_TOKEN:<span class="w"> </span><span class="s2">&quot;{{ lookup(&#39;file&#39; , &#39;secrets/client_configuration_token_05-30-2023-12-41-40.tok&#39;) }}&quot;</span>
+<span class="w">    </span>DIB_CLOUD_INIT_GROWPART_DEVICES:
+<span class="w">      </span>-<span class="w"> </span><span class="s2">&quot;/&quot;</span>
+<span class="w">    </span>DIB_RELEASE:<span class="w"> </span><span class="s2">&quot;9&quot;</span>
+<span class="w">  </span>properties:
+<span class="w">    </span>os_type:<span class="w"> </span><span class="s2">&quot;linux&quot;</span>
+<span class="w">    </span>os_distro:<span class="w"> </span><span class="s2">&quot;rocky&quot;</span>
+<span class="w">    </span>os_version:<span class="w"> </span><span class="s2">&quot;9&quot;</span>
+
+openstack_images:
+<span class="w">  </span>-<span class="w"> </span><span class="s2">&quot;{{ image_rocky9_nvidia }}&quot;</span>
+
+openstack_image_git_elements:
+<span class="w">  </span>-<span class="w"> </span>repo:<span class="w"> </span><span class="s2">&quot;https://github.com/stackhpc/stackhpc-image-elements&quot;</span>
+<span class="w">    </span>local:<span class="w"> </span><span class="s2">&quot;{{ playbook_dir }}/stackhpc-image-elements&quot;</span>
+<span class="w">    </span>version:<span class="w"> </span>master
+<span class="w">    </span>elements_path:<span class="w"> </span>elements
+</pre></div>
+</div>
+<p>The gridd driver was uploaded pulp using the following procedure:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>unzip<span class="w"> </span>NVIDIA-GRID-Linux-KVM-525.105.14-525.105.17-528.89.zip
+$<span class="w"> </span>pulp<span class="w"> </span>artifact<span class="w"> </span>upload<span class="w"> </span>--file<span class="w"> </span>~/nvidia-linux-grid-525-525.105.17-1.x86_64.rpm
+$<span class="w"> </span>pulp<span class="w"> </span>file<span class="w"> </span>content<span class="w"> </span>create<span class="w"> </span>--relative-path<span class="w"> </span><span class="s2">&quot;nvidia-linux-grid-525-525.105.17-1.x86_64.rpm&quot;</span><span class="w"> </span>--sha256<span class="w"> </span>58fda68d01f00ea76586c9fd5f161c9fbb907f627b7e4f4059a309d8112ec5f5
+$<span class="w"> </span>pulp<span class="w"> </span>file<span class="w"> </span>repository<span class="w"> </span>add<span class="w"> </span>--name<span class="w"> </span>nvidia<span class="w"> </span>--sha256<span class="w"> </span>58fda68d01f00ea76586c9fd5f161c9fbb907f627b7e4f4059a309d8112ec5f5<span class="w"> </span>--relative-path<span class="w"> </span><span class="s2">&quot;nvidia-linux-grid-525-525.105.17-1.x86_64.rpm&quot;</span>
+$<span class="w"> </span>pulp<span class="w"> </span>file<span class="w"> </span>publication<span class="w"> </span>create<span class="w"> </span>--repository<span class="w"> </span>nvidia
+$<span class="w"> </span>pulp<span class="w"> </span>file<span class="w"> </span>distribution<span class="w"> </span>update<span class="w"> </span>--name<span class="w"> </span>nvidia<span class="w"> </span>--base-path<span class="w"> </span>nvidia<span class="w"> </span>--repository<span class="w"> </span>nvidia
+</pre></div>
+</div>
+<p>This is the file we reference in <code class="docutils literal notranslate"><span class="pre">DIB_RPMS</span></code>. It is important to keep the driver versions aligned between hypervisor and guest VM.</p>
+<p>The client token can be downloaded from the web interface of the licensing portal. Care should be taken
+when copying the contents as it can contain invisible characters. It is best to copy the file directly
+into your openstack-config repository and vault encrypt it. The <code class="docutils literal notranslate"><span class="pre">file</span></code> lookup plugin can be used to decrypt
+the file (as shown in the example above).</p>
+</section>
+<section id="changing-vgpu-device-types">
+<h4>Changing VGPU device types<a class="headerlink" href="#changing-vgpu-device-types" title="Permalink to this heading">¶</a></h4>
+<p>Converting the second card to an NVIDIA-698 (whole card). The hypervisor
+is empty so we can freely delete mdevs. First clean up the mdev
+definition:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="o">[</span>stack@computegpu007<span class="w"> </span>~<span class="o">]</span>$<span class="w"> </span>sudo<span class="w"> </span>mdevctl<span class="w"> </span>list
+5c630867-a673-5d75-aa31-a499e6c7cb19<span class="w"> </span><span class="m">0000</span>:21:00.4<span class="w"> </span>nvidia-697<span class="w"> </span>manual<span class="w"> </span><span class="o">(</span>defined<span class="o">)</span>
+eaa6e018-308e-58e2-b351-aadbcf01f5a8<span class="w"> </span><span class="m">0000</span>:21:00.5<span class="w"> </span>nvidia-697<span class="w"> </span>manual<span class="w"> </span><span class="o">(</span>defined<span class="o">)</span>
+72291b01-689b-5b7a-9171-6b3480deabf4<span class="w"> </span><span class="m">0000</span>:81:00.4<span class="w"> </span>nvidia-697<span class="w"> </span>manual<span class="w"> </span><span class="o">(</span>defined<span class="o">)</span>
+0a47ffd1-392e-5373-8428-707a4e0ce31a<span class="w"> </span><span class="m">0000</span>:81:00.5<span class="w"> </span>nvidia-697<span class="w"> </span>manual<span class="w"> </span><span class="o">(</span>defined<span class="o">)</span>
+
+<span class="o">[</span>stack@computegpu007<span class="w"> </span>~<span class="o">]</span>$<span class="w"> </span>sudo<span class="w"> </span>mdevctl<span class="w"> </span>stop<span class="w"> </span>--uuid<span class="w"> </span>72291b01-689b-5b7a-9171-6b3480deabf4
+<span class="o">[</span>stack@computegpu007<span class="w"> </span>~<span class="o">]</span>$<span class="w"> </span>sudo<span class="w"> </span>mdevctl<span class="w"> </span>stop<span class="w"> </span>--uuid<span class="w"> </span>0a47ffd1-392e-5373-8428-707a4e0ce31a
+
+<span class="o">[</span>stack@computegpu007<span class="w"> </span>~<span class="o">]</span>$<span class="w"> </span>sudo<span class="w"> </span>mdevctl<span class="w"> </span>undefine<span class="w"> </span>--uuid<span class="w"> </span>0a47ffd1-392e-5373-8428-707a4e0ce31a
+
+<span class="o">[</span>stack@computegpu007<span class="w"> </span>~<span class="o">]</span>$<span class="w"> </span>sudo<span class="w"> </span>mdevctl<span class="w"> </span>list<span class="w"> </span>--defined
+5c630867-a673-5d75-aa31-a499e6c7cb19<span class="w"> </span><span class="m">0000</span>:21:00.4<span class="w"> </span>nvidia-697<span class="w"> </span>manual<span class="w"> </span><span class="o">(</span>active<span class="o">)</span>
+eaa6e018-308e-58e2-b351-aadbcf01f5a8<span class="w"> </span><span class="m">0000</span>:21:00.5<span class="w"> </span>nvidia-697<span class="w"> </span>manual<span class="w"> </span><span class="o">(</span>active<span class="o">)</span>
+72291b01-689b-5b7a-9171-6b3480deabf4<span class="w"> </span><span class="m">0000</span>:81:00.4<span class="w"> </span>nvidia-697<span class="w"> </span>manual
+
+<span class="c1"># We can re-use the first virtual function</span>
+</pre></div>
+</div>
+<p>Secondly remove the systemd unit that starts the mdev device:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="o">[</span>stack@computegpu007<span class="w"> </span>~<span class="o">]</span>$<span class="w"> </span>sudo<span class="w"> </span>rm<span class="w"> </span>/etc/systemd/system/multi-user.target.wants/nvidia-mdev@0a47ffd1-392e-5373-8428-707a4e0ce31a.service
+</pre></div>
+</div>
+<p>Example config change:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>diff<span class="w"> </span>--git<span class="w"> </span>a/etc/kayobe/environments/cci1/inventory/host_vars/computegpu007/vgpu<span class="w"> </span>b/etc/kayobe/environments/cci1/inventory/host_vars/computegpu007/vgpu
+new<span class="w"> </span>file<span class="w"> </span>mode<span class="w"> </span><span class="m">100644</span>
+index<span class="w"> </span><span class="m">0000000</span>..6cea9bf
+---<span class="w"> </span>/dev/null
++++<span class="w"> </span>b/etc/kayobe/environments/cci1/inventory/host_vars/computegpu007/vgpu
+@@<span class="w"> </span>-0,0<span class="w"> </span>+1,12<span class="w"> </span>@@
++---
++vgpu_definitions:
++<span class="w">    </span>-<span class="w"> </span>pci_address:<span class="w"> </span><span class="s2">&quot;0000:21:00.0&quot;</span>
++<span class="w">      </span>virtual_functions:
++<span class="w">        </span>-<span class="w"> </span>mdev_type:<span class="w"> </span>nvidia-697
++<span class="w">          </span>index:<span class="w"> </span><span class="m">0</span>
++<span class="w">        </span>-<span class="w"> </span>mdev_type:<span class="w"> </span>nvidia-697
++<span class="w">          </span>index:<span class="w"> </span><span class="m">1</span>
++<span class="w">    </span>-<span class="w"> </span>pci_address:<span class="w"> </span><span class="s2">&quot;0000:81:00.0&quot;</span>
++<span class="w">      </span>virtual_functions:
++<span class="w">        </span>-<span class="w"> </span>mdev_type:<span class="w"> </span>nvidia-698
++<span class="w">          </span>index:<span class="w"> </span><span class="m">0</span>
+diff<span class="w"> </span>--git<span class="w"> </span>a/etc/kayobe/kolla/config/nova/nova-compute.conf<span class="w"> </span>b/etc/kayobe/kolla/config/nova/nova-compute.conf
+index<span class="w"> </span>6f680cb..e663ec4<span class="w"> </span><span class="m">100644</span>
+---<span class="w"> </span>a/etc/kayobe/kolla/config/nova/nova-compute.conf
++++<span class="w"> </span>b/etc/kayobe/kolla/config/nova/nova-compute.conf
+@@<span class="w"> </span>-39,7<span class="w"> </span>+39,19<span class="w"> </span>@@<span class="w"> </span><span class="nv">cpu_mode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>host-model
+<span class="w"> </span><span class="o">{</span>%<span class="w"> </span>endraw<span class="w"> </span>%<span class="o">}</span>
+
+<span class="w"> </span><span class="o">{</span>%<span class="w"> </span>raw<span class="w"> </span>%<span class="o">}</span>
+-<span class="o">{</span>%<span class="w"> </span><span class="k">if</span><span class="w"> </span>inventory_hostname<span class="w"> </span><span class="k">in</span><span class="w"> </span>groups<span class="o">[</span><span class="s1">&#39;compute_multi_instance_gpu&#39;</span><span class="o">]</span><span class="w"> </span>%<span class="o">}</span>
++<span class="o">{</span>%<span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="nv">inventory_hostname</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s2">&quot;computegpu007&quot;</span><span class="w"> </span>%<span class="o">}</span>
++<span class="o">[</span>devices<span class="o">]</span>
++enabled_mdev_types<span class="w"> </span><span class="o">=</span><span class="w"> </span>nvidia-697,<span class="w"> </span>nvidia-698
++
++<span class="o">[</span>mdev_nvidia-697<span class="o">]</span>
++device_addresses<span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0000</span>:21:00.4,0000:21:00.5
++mdev_class<span class="w"> </span><span class="o">=</span><span class="w"> </span>VGPU
++
++<span class="o">[</span>mdev_nvidia-698<span class="o">]</span>
++device_addresses<span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0000</span>:81:00.4
++mdev_class<span class="w"> </span><span class="o">=</span><span class="w"> </span>CUSTOM_NVIDIA_698
++
++<span class="o">{</span>%<span class="w"> </span><span class="k">elif</span><span class="w"> </span>inventory_hostname<span class="w"> </span><span class="k">in</span><span class="w"> </span>groups<span class="o">[</span><span class="s1">&#39;compute_multi_instance_gpu&#39;</span><span class="o">]</span><span class="w"> </span>%<span class="o">}</span>
+<span class="w"> </span><span class="o">[</span>devices<span class="o">]</span>
+<span class="w"> </span><span class="nv">enabled_mdev_types</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>nvidia-700,<span class="w"> </span>nvidia-699
+
+@@<span class="w"> </span>-50,15<span class="w"> </span>+62,14<span class="w"> </span>@@<span class="w"> </span><span class="nv">mdev_class</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>CUSTOM_NVIDIA_700
+<span class="w"> </span><span class="o">[</span>mdev_nvidia-699<span class="o">]</span>
+<span class="w"> </span><span class="nv">device_addresses</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0000</span>:21:00.7,0000:81:00.7
+<span class="w"> </span><span class="nv">mdev_class</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>CUSTOM_NVIDIA_699
+-<span class="o">{</span>%<span class="w"> </span>endif<span class="w"> </span>%<span class="o">}</span>
+
+-<span class="o">{</span>%<span class="w"> </span><span class="k">if</span><span class="w"> </span>inventory_hostname<span class="w"> </span><span class="k">in</span><span class="w"> </span>groups<span class="o">[</span><span class="s1">&#39;compute_vgpu&#39;</span><span class="o">]</span><span class="w"> </span>%<span class="o">}</span>
++<span class="o">{</span>%<span class="w"> </span><span class="k">elif</span><span class="w"> </span>inventory_hostname<span class="w"> </span><span class="k">in</span><span class="w"> </span>groups<span class="o">[</span><span class="s1">&#39;compute_vgpu&#39;</span><span class="o">]</span><span class="w"> </span>%<span class="o">}</span>
+<span class="w"> </span><span class="o">[</span>devices<span class="o">]</span>
+<span class="w"> </span><span class="nv">enabled_mdev_types</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>nvidia-697
+
+<span class="w"> </span><span class="o">[</span>mdev_nvidia-697<span class="o">]</span>
+<span class="w"> </span><span class="nv">device_addresses</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0000</span>:21:00.4,0000:21:00.5,0000:81:00.4,0000:81:00.5
+-#<span class="w"> </span>Custom<span class="w"> </span>resource<span class="w"> </span>classes<span class="w"> </span>don<span class="s1">&#39;t seem to work for this card.</span>
+<span class="s1">+# Custom resource classes don&#39;</span>t<span class="w"> </span>work<span class="w"> </span>when<span class="w"> </span>you<span class="w"> </span>only<span class="w"> </span>have<span class="w"> </span>single<span class="w"> </span>resource<span class="w"> </span>type.
+<span class="w"> </span><span class="nv">mdev_class</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>VGPU
+
+<span class="w"> </span><span class="o">{</span>%<span class="w"> </span>endif<span class="w"> </span>%<span class="o">}</span>
+</pre></div>
+</div>
+<p>Re-run the configure playbook:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>kayobe<span class="o">)</span><span class="w"> </span><span class="o">[</span>stack@ansiblenode1<span class="w"> </span>kayobe<span class="o">]</span>$<span class="w"> </span>kayobe<span class="w"> </span>playbook<span class="w"> </span>run<span class="w"> </span><span class="nv">$KAYOBE_CONFIG_PATH</span>/ansible/host-configure.yml<span class="w"> </span>--tags<span class="w"> </span>vgpu<span class="w"> </span>--limit<span class="w"> </span>computegpu007
+</pre></div>
+</div>
+<p>Check the result:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="o">[</span>stack@computegpu007<span class="w"> </span>~<span class="o">]</span>$<span class="w"> </span>mdevctl<span class="w"> </span>list
+5c630867-a673-5d75-aa31-a499e6c7cb19<span class="w"> </span><span class="m">0000</span>:21:00.4<span class="w"> </span>nvidia-697<span class="w"> </span>manual
+eaa6e018-308e-58e2-b351-aadbcf01f5a8<span class="w"> </span><span class="m">0000</span>:21:00.5<span class="w"> </span>nvidia-697<span class="w"> </span>manual
+72291b01-689b-5b7a-9171-6b3480deabf4<span class="w"> </span><span class="m">0000</span>:81:00.4<span class="w"> </span>nvidia-698<span class="w"> </span>manual
+</pre></div>
+</div>
+<p>Reconfigure nova to match the change:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>kayobe<span class="w"> </span>overcloud<span class="w"> </span>service<span class="w"> </span>reconfigure<span class="w"> </span>-kt<span class="w"> </span>nova<span class="w"> </span>--kolla-limit<span class="w"> </span>computegpu007<span class="w"> </span>--skip-prechecks
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+<section id="pci-passthrough">
+<h2>PCI Passthrough<a class="headerlink" href="#pci-passthrough" title="Permalink to this heading">¶</a></h2>
 <p>This guide has been developed for Nvidia GPUs and CentOS 8.</p>
 <p>See <a class="reference external" href="https://github.com/stackhpc/kayobe-ops">Kayobe Ops</a> for
 a playbook implementation of host setup for GPU.</p>
-<div class="section" id="bios-configuration-requirements">
-<h2>BIOS Configuration Requirements<a class="headerlink" href="#bios-configuration-requirements" title="Permalink to this headline">¶</a></h2>
+<section id="bios-configuration-requirements">
+<h3>BIOS Configuration Requirements<a class="headerlink" href="#bios-configuration-requirements" title="Permalink to this heading">¶</a></h3>
 <p>On an Intel system:</p>
 <ul class="simple">
 <li><p>Enable <cite>VT-x</cite> in the BIOS for virtualisation support.</p></li>
 <li><p>Enable <cite>VT-d</cite> in the BIOS for IOMMU support.</p></li>
 </ul>
-</div>
-<div class="section" id="hypervisor-configuration-requirements">
-<h2>Hypervisor Configuration Requirements<a class="headerlink" href="#hypervisor-configuration-requirements" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="find-the-gpu-device-ids">
-<h3>Find the GPU device IDs<a class="headerlink" href="#find-the-gpu-device-ids" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="hypervisor-configuration-requirements">
+<h3>Hypervisor Configuration Requirements<a class="headerlink" href="#hypervisor-configuration-requirements" title="Permalink to this heading">¶</a></h3>
+<section id="find-the-gpu-device-ids">
+<h4>Find the GPU device IDs<a class="headerlink" href="#find-the-gpu-device-ids" title="Permalink to this heading">¶</a></h4>
 <p>From the host OS, use <code class="docutils literal notranslate"><span class="pre">lspci</span> <span class="pre">-nn</span></code> to find the PCI vendor ID and
 device ID for the GPU device and supporting components.  These are
 4-digit hex numbers.</p>
@@ -59,125 +651,125 @@ device ID for the GPU device and supporting components.  These are
 <p>In this case the vendor ID is <code class="docutils literal notranslate"><span class="pre">10de</span></code>, display ID is <code class="docutils literal notranslate"><span class="pre">13d7</span></code> and audio ID is <code class="docutils literal notranslate"><span class="pre">0fbb</span></code>.</p>
 <p>Alternatively, for an Nvidia Quadro RTX 6000:</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># NVIDIA Quadro RTX 6000/8000 PCI device IDs</span>
-<span class="nt">vendor_id</span><span class="p">:</span> <span class="s">&quot;10de&quot;</span>
-<span class="nt">display_id</span><span class="p">:</span> <span class="s">&quot;1e30&quot;</span>
-<span class="nt">audio_id</span><span class="p">:</span> <span class="s">&quot;10f7&quot;</span>
-<span class="nt">usba_id</span><span class="p">:</span> <span class="s">&quot;1ad6&quot;</span>
-<span class="nt">usba_class</span><span class="p">:</span> <span class="s">&quot;0c0330&quot;</span>
-<span class="nt">usbc_id</span><span class="p">:</span> <span class="s">&quot;1ad7&quot;</span>
-<span class="nt">usbc_class</span><span class="p">:</span> <span class="s">&quot;0c8000&quot;</span>
+<span class="nt">vendor_id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;10de&quot;</span>
+<span class="nt">display_id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1e30&quot;</span>
+<span class="nt">audio_id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;10f7&quot;</span>
+<span class="nt">usba_id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1ad6&quot;</span>
+<span class="nt">usba_class</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;0c0330&quot;</span>
+<span class="nt">usbc_id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1ad7&quot;</span>
+<span class="nt">usbc_class</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;0c8000&quot;</span>
 </pre></div>
 </div>
 <p>These parameters will be used for device-specific configuration.</p>
-</div>
-<div class="section" id="kernel-ramdisk-reconfiguration">
-<h3>Kernel Ramdisk Reconfiguration<a class="headerlink" href="#kernel-ramdisk-reconfiguration" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="kernel-ramdisk-reconfiguration">
+<h4>Kernel Ramdisk Reconfiguration<a class="headerlink" href="#kernel-ramdisk-reconfiguration" title="Permalink to this heading">¶</a></h4>
 <p>The ramdisk loaded during kernel boot can be extended to include the
 vfio PCI drivers and ensure they are loaded early in system boot.</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Template dracut config</span>
-  <span class="nt">blockinfile</span><span class="p">:</span>
-    <span class="nt">path</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/etc/dracut.conf.d/gpu-vfio.conf</span>
-    <span class="nt">block</span><span class="p">:</span> <span class="p p-Indicator">|</span>
-      <span class="no">add_drivers+=&quot;vfio vfio_iommu_type1 vfio_pci vfio_virqfd&quot;</span>
-    <span class="nt">owner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">root</span>
-    <span class="nt">group</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">root</span>
-    <span class="nt">mode</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0660</span>
-    <span class="nt">create</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>
-  <span class="nt">become</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>
-  <span class="nt">notify</span><span class="p">:</span>
-    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">Regenerate initramfs</span>
-    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">reboot</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Template dracut config</span>
+<span class="w">  </span><span class="nt">blockinfile</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/etc/dracut.conf.d/gpu-vfio.conf</span>
+<span class="w">    </span><span class="nt">block</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<span class="w">      </span><span class="no">add_drivers+=&quot;vfio vfio_iommu_type1 vfio_pci vfio_virqfd&quot;</span>
+<span class="w">    </span><span class="nt">owner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">root</span>
+<span class="w">    </span><span class="nt">group</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">root</span>
+<span class="w">    </span><span class="nt">mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0660</span>
+<span class="w">    </span><span class="nt">create</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">  </span><span class="nt">become</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">  </span><span class="nt">notify</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Regenerate initramfs</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">reboot</span>
 </pre></div>
 </div>
 <p>The handler for regenerating the Dracut initramfs is:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Regenerate initramfs</span>
-  <span class="nt">shell</span><span class="p">:</span> <span class="p p-Indicator">|-</span>
-    <span class="no">#!/bin/bash</span>
-    <span class="no">set -eux</span>
-    <span class="no">dracut -v -f /boot/initramfs-$(uname -r).img $(uname -r)</span>
-  <span class="nt">become</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Regenerate initramfs</span>
+<span class="w">  </span><span class="nt">shell</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|-</span>
+<span class="w">    </span><span class="no">#!/bin/bash</span>
+<span class="w">    </span><span class="no">set -eux</span>
+<span class="w">    </span><span class="no">dracut -v -f /boot/initramfs-$(uname -r).img $(uname -r)</span>
+<span class="w">  </span><span class="nt">become</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="kernel-boot-parameters">
-<h3>Kernel Boot Parameters<a class="headerlink" href="#kernel-boot-parameters" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="kernel-boot-parameters">
+<h4>Kernel Boot Parameters<a class="headerlink" href="#kernel-boot-parameters" title="Permalink to this heading">¶</a></h4>
 <p>Set the following kernel parameters by adding to
 <code class="docutils literal notranslate"><span class="pre">GRUB_CMDLINE_LINUX_DEFAULT</span></code> or <code class="docutils literal notranslate"><span class="pre">GRUB_CMDLINE_LINUX</span></code> in
 <code class="docutils literal notranslate"><span class="pre">/etc/default/grub.conf</span></code>.  We can use the
 <a class="reference external" href="https://galaxy.ansible.com/stackhpc/grubcmdline">stackhpc.grubcmdline</a>
 role from Ansible Galaxy:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Add vfio-pci.ids kernel args</span>
-  <span class="nt">include_role</span><span class="p">:</span>
-    <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">stackhpc.grubcmdline</span>
-  <span class="nt">vars</span><span class="p">:</span>
-    <span class="nt">kernel_cmdline</span><span class="p">:</span>
-      <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">intel_iommu=on</span>
-      <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">iommu=pt</span>
-      <span class="p p-Indicator">-</span> <span class="s">&quot;vfio-pci.ids={{</span><span class="nv"> </span><span class="s">vendor_id</span><span class="nv"> </span><span class="s">}}:{{</span><span class="nv"> </span><span class="s">display_id</span><span class="nv"> </span><span class="s">}},{{</span><span class="nv"> </span><span class="s">vendor_id</span><span class="nv"> </span><span class="s">}}:{{</span><span class="nv"> </span><span class="s">audio_id</span><span class="nv"> </span><span class="s">}}&quot;</span>
-    <span class="nt">kernel_cmdline_remove</span><span class="p">:</span>
-      <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">iommu</span>
-      <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">intel_iommu</span>
-      <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">vfio-pci.ids</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Add vfio-pci.ids kernel args</span>
+<span class="w">  </span><span class="nt">include_role</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">stackhpc.grubcmdline</span>
+<span class="w">  </span><span class="nt">vars</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">kernel_cmdline</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">intel_iommu=on</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">iommu=pt</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;vfio-pci.ids={{</span><span class="nv"> </span><span class="s">vendor_id</span><span class="nv"> </span><span class="s">}}:{{</span><span class="nv"> </span><span class="s">display_id</span><span class="nv"> </span><span class="s">}},{{</span><span class="nv"> </span><span class="s">vendor_id</span><span class="nv"> </span><span class="s">}}:{{</span><span class="nv"> </span><span class="s">audio_id</span><span class="nv"> </span><span class="s">}}&quot;</span>
+<span class="w">    </span><span class="nt">kernel_cmdline_remove</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">iommu</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">intel_iommu</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">vfio-pci.ids</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="kernel-device-management">
-<h3>Kernel Device Management<a class="headerlink" href="#kernel-device-management" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="kernel-device-management">
+<h4>Kernel Device Management<a class="headerlink" href="#kernel-device-management" title="Permalink to this heading">¶</a></h4>
 <p>In the hypervisor, we must prevent kernel device initialisation of
 the GPU and prevent drivers from loading for binding the GPU in the
 host OS.  We do this using <code class="docutils literal notranslate"><span class="pre">udev</span></code> rules:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Template udev rules to blacklist GPU usb controllers</span>
-  <span class="nt">blockinfile</span><span class="p">:</span>
-    <span class="c1"># We want this to execute as soon as possible</span>
-    <span class="nt">path</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/etc/udev/rules.d/99-gpu.rules</span>
-    <span class="nt">block</span><span class="p">:</span> <span class="p p-Indicator">|</span>
-      <span class="no">#Remove NVIDIA USB xHCI Host Controller Devices, if present</span>
-      <span class="no">ACTION==&quot;add&quot;, SUBSYSTEM==&quot;pci&quot;, ATTR{vendor}==&quot;0x{{ vendor_id }}&quot;, ATTR{class}==&quot;0x{{ usba_class }}&quot;, ATTR{remove}=&quot;1&quot;</span>
-      <span class="no">#Remove NVIDIA USB Type-C UCSI devices, if present</span>
-      <span class="no">ACTION==&quot;add&quot;, SUBSYSTEM==&quot;pci&quot;, ATTR{vendor}==&quot;0x{{ vendor_id }}&quot;, ATTR{class}==&quot;0x{{ usbc_class }}&quot;, ATTR{remove}=&quot;1&quot;</span>
-    <span class="nt">owner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">root</span>
-    <span class="nt">group</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">root</span>
-    <span class="nt">mode</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0644</span>
-    <span class="nt">create</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>
-  <span class=" -Error"> </span><span class="nt">become</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Template udev rules to blacklist GPU usb controllers</span>
+<span class="w">  </span><span class="nt">blockinfile</span><span class="p">:</span>
+<span class="w">    </span><span class="c1"># We want this to execute as soon as possible</span>
+<span class="w">    </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/etc/udev/rules.d/99-gpu.rules</span>
+<span class="w">    </span><span class="nt">block</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<span class="w">      </span><span class="no">#Remove NVIDIA USB xHCI Host Controller Devices, if present</span>
+<span class="w">      </span><span class="no">ACTION==&quot;add&quot;, SUBSYSTEM==&quot;pci&quot;, ATTR{vendor}==&quot;0x{{ vendor_id }}&quot;, ATTR{class}==&quot;0x{{ usba_class }}&quot;, ATTR{remove}=&quot;1&quot;</span>
+<span class="w">      </span><span class="no">#Remove NVIDIA USB Type-C UCSI devices, if present</span>
+<span class="w">      </span><span class="no">ACTION==&quot;add&quot;, SUBSYSTEM==&quot;pci&quot;, ATTR{vendor}==&quot;0x{{ vendor_id }}&quot;, ATTR{class}==&quot;0x{{ usbc_class }}&quot;, ATTR{remove}=&quot;1&quot;</span>
+<span class="w">    </span><span class="nt">owner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">root</span>
+<span class="w">    </span><span class="nt">group</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">root</span>
+<span class="w">    </span><span class="nt">mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0644</span>
+<span class="w">    </span><span class="nt">create</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">  </span><span class="w w-Error"> </span><span class="nt">become</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="kernel-drivers">
-<h3>Kernel Drivers<a class="headerlink" href="#kernel-drivers" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="kernel-drivers">
+<h4>Kernel Drivers<a class="headerlink" href="#kernel-drivers" title="Permalink to this heading">¶</a></h4>
 <p>Prevent the <code class="docutils literal notranslate"><span class="pre">nouveau</span></code> kernel driver from loading by
 blacklisting the module:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Blacklist nouveau</span>
-  <span class="nt">blockinfile</span><span class="p">:</span>
-    <span class="nt">path</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/etc/modprobe.d/blacklist-nouveau.conf</span>
-    <span class="nt">block</span><span class="p">:</span> <span class="p p-Indicator">|</span>
-      <span class="no">blacklist nouveau</span>
-      <span class="no">options nouveau modeset=0</span>
-    <span class="nt">mode</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0664</span>
-    <span class="nt">owner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">root</span>
-    <span class="nt">group</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">root</span>
-    <span class="nt">create</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>
-  <span class="nt">become</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>
-  <span class="nt">notify</span><span class="p">:</span>
-    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">reboot</span>
-    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">Regenerate initramfs</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Blacklist nouveau</span>
+<span class="w">  </span><span class="nt">blockinfile</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/etc/modprobe.d/blacklist-nouveau.conf</span>
+<span class="w">    </span><span class="nt">block</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<span class="w">      </span><span class="no">blacklist nouveau</span>
+<span class="w">      </span><span class="no">options nouveau modeset=0</span>
+<span class="w">    </span><span class="nt">mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0664</span>
+<span class="w">    </span><span class="nt">owner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">root</span>
+<span class="w">    </span><span class="nt">group</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">root</span>
+<span class="w">    </span><span class="nt">create</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">  </span><span class="nt">become</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">  </span><span class="nt">notify</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">reboot</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Regenerate initramfs</span>
 </pre></div>
 </div>
 <p>Ensure that the <code class="docutils literal notranslate"><span class="pre">vfio</span></code> drivers are loaded into the kernel on boot:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Add vfio to modules-load.d</span>
-  <span class="nt">blockinfile</span><span class="p">:</span>
-    <span class="nt">path</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/etc/modules-load.d/vfio.conf</span>
-    <span class="nt">block</span><span class="p">:</span> <span class="p p-Indicator">|</span>
-      <span class="no">vfio</span>
-      <span class="no">vfio_iommu_type1</span>
-      <span class="no">vfio_pci</span>
-      <span class="no">vfio_virqfd</span>
-    <span class="nt">owner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">root</span>
-    <span class="nt">group</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">root</span>
-    <span class="nt">mode</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0664</span>
-    <span class="nt">create</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>
-  <span class="nt">become</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>
-  <span class="nt">notify</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">reboot</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Add vfio to modules-load.d</span>
+<span class="w">  </span><span class="nt">blockinfile</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/etc/modules-load.d/vfio.conf</span>
+<span class="w">    </span><span class="nt">block</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<span class="w">      </span><span class="no">vfio</span>
+<span class="w">      </span><span class="no">vfio_iommu_type1</span>
+<span class="w">      </span><span class="no">vfio_pci</span>
+<span class="w">      </span><span class="no">vfio_virqfd</span>
+<span class="w">    </span><span class="nt">owner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">root</span>
+<span class="w">    </span><span class="nt">group</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">root</span>
+<span class="w">    </span><span class="nt">mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0664</span>
+<span class="w">    </span><span class="nt">create</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">  </span><span class="nt">become</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">  </span><span class="nt">notify</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">reboot</span>
 </pre></div>
 </div>
 <p>Once this code has taken effect (after a reboot), the VFIO kernel drivers should be loaded on boot:</p>
@@ -201,12 +793,12 @@ QEMU: Checking for device assignment IOMMU support                         : PAS
 QEMU: Checking if IOMMU is enabled by kernel                               : PASS
 </pre></div>
 </div>
-</div>
-</div>
-<div class="section" id="openstack-nova-configuration">
-<h2>OpenStack Nova configuration<a class="headerlink" href="#openstack-nova-configuration" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="configure-nova-scheduler">
-<h3>Configure nova-scheduler<a class="headerlink" href="#configure-nova-scheduler" title="Permalink to this headline">¶</a></h3>
+</section>
+</section>
+<section id="openstack-nova-configuration">
+<h3>OpenStack Nova configuration<a class="headerlink" href="#openstack-nova-configuration" title="Permalink to this heading">¶</a></h3>
+<section id="configure-nova-scheduler">
+<h4>Configure nova-scheduler<a class="headerlink" href="#configure-nova-scheduler" title="Permalink to this heading">¶</a></h4>
 <p>The nova-scheduler service must be configured to enable the <code class="docutils literal notranslate"><span class="pre">PciPassthroughFilter</span></code>
 To enable it add it to the list of filters to Kolla-Ansible configuration file:
 <code class="docutils literal notranslate"><span class="pre">etc/kayobe/kolla/config/nova.conf</span></code>, for instance:</p>
@@ -215,9 +807,9 @@ To enable it add it to the list of filters to Kolla-Ansible configuration file:
 <span class="l l-Scalar l-Scalar-Plain">enabled_filters = AvailabilityZoneFilter, ComputeFilter, ComputeCapabilitiesFilter, ImagePropertiesFilter, ServerGroupAntiAffinityFilter, ServerGroupAffinityFilter, PciPassthroughFilter</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="configure-nova-compute">
-<h3>Configure nova-compute<a class="headerlink" href="#configure-nova-compute" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="configure-nova-compute">
+<h4>Configure nova-compute<a class="headerlink" href="#configure-nova-compute" title="Permalink to this heading">¶</a></h4>
 <p>Configuration can be applied in flexible ways using Kolla-Ansible’s
 methods for <a class="reference external" href="https://docs.openstack.org/kayobe/latest/configuration/reference/kolla-ansible.html#service-configuration">inventory-driven customisation of configuration</a>.
 The following configuration could be added to
@@ -241,12 +833,12 @@ alias = { &quot;vendor_id&quot;:&quot;10de&quot;, &quot;product_id&quot;:&quot;1
 alias = { &quot;vendor_id&quot;:&quot;10de&quot;, &quot;product_id&quot;:&quot;1db5&quot;, &quot;device_type&quot;:&quot;type-PCI&quot;, &quot;name&quot;:&quot;gpu-v100-32&quot; }
 alias = { &quot;vendor_id&quot;:&quot;10de&quot;, &quot;product_id&quot;:&quot;15f8&quot;, &quot;device_type&quot;:&quot;type-PCI&quot;, &quot;name&quot;:&quot;gpu-p100&quot; }
 {% endif %}
-<span class="cp">{%</span> <span class="k">endraw</span> <span class="cp">%}</span><span class="x"></span>
+<span class="cp">{%</span> <span class="k">endraw</span> <span class="cp">%}</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="configure-nova-api">
-<h3>Configure nova-api<a class="headerlink" href="#configure-nova-api" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="configure-nova-api">
+<h4>Configure nova-api<a class="headerlink" href="#configure-nova-api" title="Permalink to this heading">¶</a></h4>
 <p>pci.alias also needs to be configured on the controller.
 This configuration should match the configuration found on the compute nodes.
 Add it to Kolla-Ansible configuration file:
@@ -257,15 +849,15 @@ Add it to Kolla-Ansible configuration file:
 <span class="l l-Scalar l-Scalar-Plain">alias = { &quot;vendor_id&quot;:&quot;10de&quot;, &quot;product_id&quot;:&quot;15f8&quot;, &quot;device_type&quot;:&quot;type-PCI&quot;, &quot;name&quot;:&quot;gpu-p100&quot; }</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="reconfigure-nova-service">
-<h3>Reconfigure nova service<a class="headerlink" href="#reconfigure-nova-service" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="reconfigure-nova-service">
+<h4>Reconfigure nova service<a class="headerlink" href="#reconfigure-nova-service" title="Permalink to this heading">¶</a></h4>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>kayobe overcloud service reconfigure --kolla-tags nova --kolla-skip-tags common --skip-prechecks
 </pre></div>
 </div>
-</div>
-<div class="section" id="configure-a-flavor">
-<h3>Configure a flavor<a class="headerlink" href="#configure-a-flavor" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="configure-a-flavor">
+<h4>Configure a flavor<a class="headerlink" href="#configure-a-flavor" title="Permalink to this heading">¶</a></h4>
 <p>For example, to request two of the GPUs with alias gpu-p100</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>openstack flavor set m1.medium --property &quot;pci_passthrough:alias&quot;=&quot;gpu-p100:2&quot;
 </pre></div>
@@ -290,25 +882,25 @@ Add it to Kolla-Ansible configuration file:
 <span class="go">admin# tools/acme-config --vault-password-file ~/vault-password</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="create-instance-with-gpu-passthrough">
-<h3>Create instance with GPU passthrough<a class="headerlink" href="#create-instance-with-gpu-passthrough" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="create-instance-with-gpu-passthrough">
+<h4>Create instance with GPU passthrough<a class="headerlink" href="#create-instance-with-gpu-passthrough" title="Permalink to this heading">¶</a></h4>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>openstack server create --flavor m1.medium --image ubuntu2004 --wait test-pci
 </pre></div>
 </div>
-</div>
-</div>
-<div class="section" id="testing-gpu-in-a-guest-vm">
-<h2>Testing GPU in a Guest VM<a class="headerlink" href="#testing-gpu-in-a-guest-vm" title="Permalink to this headline">¶</a></h2>
+</section>
+</section>
+<section id="testing-gpu-in-a-guest-vm">
+<h3>Testing GPU in a Guest VM<a class="headerlink" href="#testing-gpu-in-a-guest-vm" title="Permalink to this heading">¶</a></h3>
 <p>The Nvidia drivers must be installed first.  For example, on an Ubuntu guest:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>sudo apt install nvidia-headless-440 nvidia-utils-440 nvidia-compute-utils-440
 </pre></div>
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">nvidia-smi</span></code> command will generate detailed output if the driver has loaded
 successfully.</p>
-</div>
-<div class="section" id="further-reference">
-<h2>Further Reference<a class="headerlink" href="#further-reference" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="further-reference">
+<h3>Further Reference<a class="headerlink" href="#further-reference" title="Permalink to this heading">¶</a></h3>
 <p>For PCI Passthrough and GPUs in OpenStack:</p>
 <ul class="simple">
 <li><p>Consumer-grade GPUs: <a class="reference external" href="https://gist.github.com/claudiok/890ab6dfe76fa45b30081e58038a9215">https://gist.github.com/claudiok/890ab6dfe76fa45b30081e58038a9215</a></p></li>
@@ -321,8 +913,9 @@ successfully.</p>
 <li><p><a class="reference external" href="https://access.redhat.com/documentation/en-us/red_hat_virtualization/4.1/html/installation_guide/appe-configuring_a_hypervisor_host_for_pci_passthrough">https://access.redhat.com/documentation/en-us/red_hat_virtualization/4.1/html/installation_guide/appe-configuring_a_hypervisor_host_for_pci_passthrough</a></p></li>
 <li><p><a class="reference external" href="https://www.gresearch.co.uk/article/utilising-the-openstack-placement-service-to-schedule-gpu-and-nvme-workloads-alongside-general-purpose-instances/">https://www.gresearch.co.uk/article/utilising-the-openstack-placement-service-to-schedule-gpu-and-nvme-workloads-alongside-general-purpose-instances/</a></p></li>
 </ul>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
           </div>
@@ -345,19 +938,20 @@ successfully.</p>
 <li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="working_with_openstack.html">Working with OpenStack</a></li>
 <li class="toctree-l1"><a class="reference internal" href="working_with_kayobe.html">Working with Kayobe</a></li>
+<li class="toctree-l1"><a class="reference internal" href="physical_network.html">Physical network</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hardware_inventory_management.html">Hardware Inventory Management</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ceph_storage.html">Ceph Storage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="managing_users_and_projects.html">Managing Users and Projects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="operations_and_monitoring.html">Operations and Monitoring</a></li>
+<li class="toctree-l1"><a class="reference internal" href="wazuh.html">Wazuh Security Platform</a></li>
 <li class="toctree-l1"><a class="reference internal" href="customising_deployment.html">Customising the OpenStack Deployment</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Support for GPUs in OpenStack</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#bios-configuration-requirements">BIOS Configuration Requirements</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#hypervisor-configuration-requirements">Hypervisor Configuration Requirements</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#openstack-nova-configuration">OpenStack Nova configuration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#testing-gpu-in-a-guest-vm">Testing GPU in a Guest VM</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#further-reference">Further Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#nvidia-virtual-gpu">NVIDIA Virtual GPU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pci-passthrough">PCI Passthrough</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="baremetal_management.html">Bare Metal Compute Hardware Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rally_and_tempest.html">Verifying the Cloud with Rally and Tempest</a></li>
 </ul>
 
 <div class="relations">
@@ -365,6 +959,7 @@ successfully.</p>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
       <li>Previous: <a href="customising_deployment.html" title="previous chapter">Customising the OpenStack Deployment</a></li>
+      <li>Next: <a href="baremetal_management.html" title="next chapter">Bare Metal Compute Hardware Management</a></li>
   </ul></li>
 </ul>
 </div>
@@ -372,12 +967,12 @@ successfully.</p>
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -391,11 +986,11 @@ successfully.</p>
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2020, StackHPC Ltd.
+      &copy;2020-2023, StackHPC Ltd.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.4</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |
       <a href="_sources/gpus_in_openstack.rst.txt"

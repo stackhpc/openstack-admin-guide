@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Verifying the Cloud with Rally and Tempest &#8212; OpenStack Administration Guide  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b3523f8e" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=039e1c02" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=b3ba4146"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Bare Metal Compute Hardware Management" href="baremetal_management.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="verifying-the-cloud-with-rally-and-tempest">
+<h1>Verifying the Cloud with Rally and Tempest<a class="headerlink" href="#verifying-the-cloud-with-rally-and-tempest" title="Permalink to this heading">¶</a></h1>
+<p><a class="reference external" href="https://docs.openstack.org/rally/latest/">Rally</a> is a test framework,
+and <a class="reference external" href="https://docs.openstack.org/tempest/latest/">Tempest</a> is the
+OpenStack API test suite.  In this guide, Rally is used to run Tempest tests.</p>
+<section id="requirements">
+<h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this heading">¶</a></h2>
+<p>OpenStack tests are run from a host with access to the OpenStack APIs
+and external network for instances.</p>
+<p>The following software environment is needed:</p>
+<ul class="simple">
+<li><p>OpenStack admin credentials, eg public-openrc.sh from kayobe-config/etc/kolla</p></li>
+<li><p>A virtualenv setup with python-openstackclient installed</p></li>
+</ul>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">source</span><span class="w"> </span>venv/bin/activate
+pip<span class="w"> </span>install<span class="w"> </span>python-openstackclient
+<span class="nb">source</span><span class="w"> </span>~/kayobe-env/src/kayobe-config/etc/kolla/public-openrc.sh
+</pre></div>
+</div>
+</section>
+<section id="setup-rally-for-a-new-user">
+<h2>Setup Rally for a new user<a class="headerlink" href="#setup-rally-for-a-new-user" title="Permalink to this heading">¶</a></h2>
+<p>A good directory hierarchy would be <cite>~/rally/shakespeare/tempest-recipes</cite>.
+This is assumed in this guide.</p>
+<p>Install Rally into the virtualenv:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>rally-openstack<span class="w"> </span><span class="se">\</span>
+<span class="w">     </span>--constraint<span class="w"> </span>https://releases.openstack.org/constraints/upper/master
+</pre></div>
+</div>
+<p>Create the Rally test database and configuration file.  For this you will
+need the virtualenv and public-openrc as described above:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>mkdir<span class="w"> </span>-p<span class="w"> </span>~/.rally<span class="w"> </span>~/rally/data
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;[database]&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>tee<span class="w"> </span>~/.rally/rally.conf
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;connection=sqlite:///</span><span class="si">${</span><span class="nv">HOME</span><span class="si">}</span><span class="s2">/rally/data/rally.db&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>tee<span class="w"> </span>-a<span class="w"> </span>~/.rally/rally.conf
+rally<span class="w"> </span>db<span class="w"> </span>recreate
+rally<span class="w"> </span>verify<span class="w"> </span>create-verifier<span class="w"> </span>--name<span class="w"> </span>default<span class="w"> </span>--type<span class="w"> </span>tempest
+rally<span class="w"> </span>deployment<span class="w"> </span>create<span class="w"> </span>--fromenv<span class="w"> </span>--name<span class="w"> </span>production
+</pre></div>
+</div>
+<p>Check:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>rally<span class="w"> </span>deployment<span class="w"> </span>show
+</pre></div>
+</div>
+</section>
+<section id="install-shakespeare">
+<h2>Install Shakespeare<a class="headerlink" href="#install-shakespeare" title="Permalink to this heading">¶</a></h2>
+<p>Shakespeare is used for writing Tempest test configuration.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>~/rally
+git<span class="w"> </span>clone<span class="w"> </span>https://github.com/stackhpc/shakespeare.git
+<span class="nb">cd</span><span class="w"> </span>shakespeare
+pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+</pre></div>
+</div>
+</section>
+<section id="install-tempest-recipe">
+<h2>Install Tempest Recipe<a class="headerlink" href="#install-tempest-recipe" title="Permalink to this heading">¶</a></h2>
+<p>A custom set of Tempest recipes should be maintained for Acme,
+defining key parameters needed and fine-grained control on the test cases
+to run (and which to skip).</p>
+<p>In your <cite>shakespeare</cite> directory,
+install the Tempest recipes in your Tempest configuration.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/acme-openstack/tempest-recipes.git
+ansible-playbook<span class="w"> </span>template.yml<span class="w"> </span>-e<span class="w"> </span>@tempest-recipes/production.yml
+mkdir<span class="w"> </span>-p<span class="w">  </span>../config/production
+rally<span class="w"> </span>verify<span class="w"> </span>configure-verifier<span class="w"> </span>--reconfigure<span class="w"> </span>--extend<span class="w"> </span>../config/production/production.conf
+</pre></div>
+</div>
+</section>
+<section id="rally-invocation">
+<h2>Rally invocation<a class="headerlink" href="#rally-invocation" title="Permalink to this heading">¶</a></h2>
+<p>Invoke the tests (this will take several hours to complete):</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>rally<span class="w"> </span>--debug<span class="w"> </span>verify<span class="w"> </span>start<span class="w"> </span>--concurrency<span class="w"> </span><span class="m">1</span><span class="w"> </span>--skip-list<span class="w"> </span>tempest-recipes/production-skiplist.yml
+</pre></div>
+</div>
+</section>
+<section id="report-generation">
+<h2>Report generation<a class="headerlink" href="#report-generation" title="Permalink to this heading">¶</a></h2>
+<p>Generate an HTML report of the results:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>rally<span class="w"> </span>verify<span class="w"> </span>report<span class="w"> </span>--type<span class="w"> </span>html<span class="w"> </span>--to<span class="w"> </span>~/rally/report-<span class="k">$(</span>date<span class="w"> </span>-d<span class="w"> </span><span class="s2">&quot;today&quot;</span><span class="w"> </span>+<span class="s2">&quot;%Y%m%d%H%M&quot;</span><span class="k">)</span>.html
+</pre></div>
+</div>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">OpenStack Administration Guide</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="working_with_openstack.html">Working with OpenStack</a></li>
+<li class="toctree-l1"><a class="reference internal" href="working_with_kayobe.html">Working with Kayobe</a></li>
+<li class="toctree-l1"><a class="reference internal" href="physical_network.html">Physical network</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hardware_inventory_management.html">Hardware Inventory Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ceph_storage.html">Ceph Storage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="managing_users_and_projects.html">Managing Users and Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="operations_and_monitoring.html">Operations and Monitoring</a></li>
+<li class="toctree-l1"><a class="reference internal" href="wazuh.html">Wazuh Security Platform</a></li>
+<li class="toctree-l1"><a class="reference internal" href="customising_deployment.html">Customising the OpenStack Deployment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gpus_in_openstack.html">Support for GPUs in OpenStack</a></li>
+<li class="toctree-l1"><a class="reference internal" href="baremetal_management.html">Bare Metal Compute Hardware Management</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Verifying the Cloud with Rally and Tempest</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#setup-rally-for-a-new-user">Setup Rally for a new user</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#install-shakespeare">Install Shakespeare</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#install-tempest-recipe">Install Tempest Recipe</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#rally-invocation">Rally invocation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#report-generation">Report generation</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="baremetal_management.html" title="previous chapter">Bare Metal Compute Hardware Management</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020-2023, StackHPC Ltd.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+      |
+      <a href="_sources/rally_and_tempest.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

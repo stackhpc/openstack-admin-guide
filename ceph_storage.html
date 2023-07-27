@@ -1,17 +1,16 @@
-
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
     <title>Ceph Storage &#8212; OpenStack Administration Guide  documentation</title>
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
-    <script src="_static/doctools.js"></script>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b3523f8e" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=039e1c02" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=b3ba4146"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=4825356b"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Managing Users and Projects" href="managing_users_and_projects.html" />
@@ -32,11 +31,235 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="ceph-storage">
-<h1>Ceph Storage<a class="headerlink" href="#ceph-storage" title="Permalink to this headline">¶</a></h1>
+  <section id="ceph-storage">
+<h1>Ceph Storage<a class="headerlink" href="#ceph-storage" title="Permalink to this heading">¶</a></h1>
 <p>The Acme deployment uses Ceph as a storage backend.</p>
 <p>The Ceph deployment is not managed by StackHPC Ltd.</p>
+<section id="working-with-ceph-deployment-tool">
+<h2>Working with Ceph deployment tool<a class="headerlink" href="#working-with-ceph-deployment-tool" title="Permalink to this heading">¶</a></h2>
+<section id="cephadm-configuration-location">
+<h3>cephadm configuration location<a class="headerlink" href="#cephadm-configuration-location" title="Permalink to this heading">¶</a></h3>
+<p>In kayobe-config repository, under <code class="docutils literal notranslate"><span class="pre">etc/kayobe/cephadm.yml</span></code> (or in a specific
+Kayobe environment when using multiple environment, e.g.
+<code class="docutils literal notranslate"><span class="pre">etc/kayobe/environments/production/cephadm.yml</span></code>)</p>
+<p>StackHPC’s cephadm Ansible collection relies on multiple inventory groups:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">mons</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mgrs</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">osds</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rgws</span></code> (optional)</p></li>
+</ul>
+<p>Those groups are usually defined in <code class="docutils literal notranslate"><span class="pre">etc/kayobe/inventory/groups</span></code>.</p>
+</section>
+<section id="running-cephadm-playbooks">
+<h3>Running cephadm playbooks<a class="headerlink" href="#running-cephadm-playbooks" title="Permalink to this heading">¶</a></h3>
+<p>In kayobe-config repository, under <code class="docutils literal notranslate"><span class="pre">etc/kayobe/ansible</span></code> there is a set of
+cephadm based playbooks utilising stackhpc.cephadm Ansible Galaxy collection.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">cephadm.yml</span></code> - runs the end to end process starting with deployment and
+defining EC profiles/crush rules/pools and users</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cephadm-crush-rules.yml</span></code> - defines Ceph crush rules according</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cephadm-deploy.yml</span></code> - runs the bootstrap/deploy playbook without the
+additional playbooks</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cephadm-ec-profiles.yml</span></code> - defines Ceph EC profiles</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cephadm-gather-keys.yml</span></code> - gather Ceph configuration and keys and populate
+kayobe-config</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cephadm-keys.yml</span></code> - defines Ceph users/keys</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cephadm-pools.yml</span></code> - defines Ceph pools</p></li>
+</ul>
+</section>
+<section id="running-ceph-commands">
+<h3>Running Ceph commands<a class="headerlink" href="#running-ceph-commands" title="Permalink to this heading">¶</a></h3>
+<p>Ceph commands are usually run inside a <code class="docutils literal notranslate"><span class="pre">cephadm</span> <span class="pre">shell</span></code> utility container:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">ceph# cephadm shell</span>
+</pre></div>
 </div>
+<p>Operating a cluster requires a keyring with an admin access to be available for Ceph
+commands. Cephadm will copy such keyring to the nodes carrying
+<a class="reference external" href="https://docs.ceph.com/en/quincy/cephadm/host-management/#special-host-labels">_admin</a>
+label - present on MON servers by default when using
+<a class="reference external" href="https://github.com/stackhpc/ansible-collection-cephadm">StackHPC Cephadm collection</a>.</p>
+</section>
+<section id="adding-a-new-storage-node">
+<h3>Adding a new storage node<a class="headerlink" href="#adding-a-new-storage-node" title="Permalink to this heading">¶</a></h3>
+<p>Add a node to a respective group (e.g. osds) and run <code class="docutils literal notranslate"><span class="pre">cephadm-deploy.yml</span></code>
+playbook.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>To add other node types than osds (mons, mgrs, etc) you need to specify
+<code class="docutils literal notranslate"><span class="pre">-e</span> <span class="pre">cephadm_bootstrap=True</span></code> on playbook run.</p>
+</div>
+</section>
+<section id="removing-a-storage-node">
+<h3>Removing a storage node<a class="headerlink" href="#removing-a-storage-node" title="Permalink to this heading">¶</a></h3>
+<p>First drain the node</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">ceph# cephadm shell</span>
+<span class="go">ceph# ceph orch host drain &lt;host&gt;</span>
+</pre></div>
+</div>
+<p>Once all daemons are removed - you can remove the host:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">ceph# cephadm shell</span>
+<span class="go">ceph# ceph orch host rm &lt;host&gt;</span>
+</pre></div>
+</div>
+<p>And then remove the host from inventory (usually in
+<code class="docutils literal notranslate"><span class="pre">etc/kayobe/inventory/overcloud</span></code>)</p>
+<p>Additional options/commands may be found in
+<a class="reference external" href="https://docs.ceph.com/en/latest/cephadm/host-management/">Host management</a></p>
+</section>
+<section id="id1">
+<h3>Replacing a Failed Ceph Drive<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h3>
+<p>Once an OSD has been identified as having a hardware failure,
+the affected drive will need to be replaced.</p>
+<p>If rebooting a Ceph node, first set <code class="docutils literal notranslate"><span class="pre">noout</span></code> to prevent excess data
+movement:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">ceph# cephadm shell</span>
+<span class="go">ceph# ceph osd set noout</span>
+</pre></div>
+</div>
+<p>Reboot the node and replace the drive</p>
+<p>Unset noout after the node is back online</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">ceph# cephadm shell</span>
+<span class="go">ceph# ceph osd unset noout</span>
+</pre></div>
+</div>
+<p>Remove the OSD using Ceph orchestrator command:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">ceph# cephadm shell</span>
+<span class="go">ceph# ceph orch osd rm &lt;ID&gt; --replace</span>
+</pre></div>
+</div>
+<p>After removing OSDs, if the drives the OSDs were deployed on once again become
+available, cephadm may automatically try to deploy more OSDs on these drives if
+they match an existing drivegroup spec.
+If this is not your desired action plan - it’s best to modify the drivegroup
+spec before (<code class="docutils literal notranslate"><span class="pre">cephadm_osd_spec</span></code> variable in <code class="docutils literal notranslate"><span class="pre">etc/kayobe/cephadm.yml</span></code>).
+Either set <code class="docutils literal notranslate"><span class="pre">unmanaged:</span> <span class="pre">true</span></code> to stop cephadm from picking up new disks or
+modify it in some way that it no longer matches the drives you want to remove.</p>
+</section>
+</section>
+<section id="operations">
+<h2>Operations<a class="headerlink" href="#operations" title="Permalink to this heading">¶</a></h2>
+<section id="replacing-drive">
+<h3>Replacing drive<a class="headerlink" href="#replacing-drive" title="Permalink to this heading">¶</a></h3>
+<p>See upstream documentation:
+<a class="reference external" href="https://docs.ceph.com/en/quincy/cephadm/services/osd/#replacing-an-osd">https://docs.ceph.com/en/quincy/cephadm/services/osd/#replacing-an-osd</a></p>
+<p>In case where disk holding DB and/or WAL fails, it is necessary to recreate
+(using replacement procedure above) all OSDs that are associated with this
+disk - usually NVMe drive. The following single command is sufficient to
+identify which OSDs are tied to which physical disks:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">ceph# ceph device ls</span>
+</pre></div>
+</div>
+</section>
+<section id="host-maintenance">
+<h3>Host maintenance<a class="headerlink" href="#host-maintenance" title="Permalink to this heading">¶</a></h3>
+<p><a class="reference external" href="https://docs.ceph.com/en/quincy/cephadm/host-management/#maintenance-mode">https://docs.ceph.com/en/quincy/cephadm/host-management/#maintenance-mode</a></p>
+</section>
+<section id="upgrading">
+<h3>Upgrading<a class="headerlink" href="#upgrading" title="Permalink to this heading">¶</a></h3>
+<p><a class="reference external" href="https://docs.ceph.com/en/quincy/cephadm/upgrade/">https://docs.ceph.com/en/quincy/cephadm/upgrade/</a></p>
+</section>
+</section>
+<section id="troubleshooting">
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permalink to this heading">¶</a></h2>
+<section id="investigating-a-failed-ceph-drive">
+<h3>Investigating a Failed Ceph Drive<a class="headerlink" href="#investigating-a-failed-ceph-drive" title="Permalink to this heading">¶</a></h3>
+<p>A failing drive in a Ceph cluster will cause OSD daemon to crash.
+In this case Ceph will go into <cite>HEALTH_WARN</cite> state.
+Ceph can report details about failed OSDs by running:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">ceph# ceph health detail</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Remember to run ceph/rbd commands from within <code class="docutils literal notranslate"><span class="pre">cephadm</span> <span class="pre">shell</span></code>
+(preferred method) or after installing Ceph client. Details in the
+official <a class="reference external" href="https://docs.ceph.com/en/quincy/cephadm/install/#enable-ceph-cli">documentation</a>.
+It is also required that the host where commands are executed has admin
+Ceph keyring present - easiest to achieve by applying
+<a class="reference external" href="https://docs.ceph.com/en/quincy/cephadm/host-management/#special-host-labels">_admin</a>
+label (Ceph MON servers have it by default when using
+<a class="reference external" href="https://github.com/stackhpc/ansible-collection-cephadm">StackHPC Cephadm collection</a>).</p>
+</div>
+<p>A failed OSD will also be reported as down by running:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">ceph# ceph osd tree</span>
+</pre></div>
+</div>
+<p>Note the ID of the failed OSD.</p>
+<p>The failed disk is usually logged by the Linux kernel too:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">storage-0# dmesg -T</span>
+</pre></div>
+</div>
+<p>Cross-reference the hardware device and OSD ID to ensure they match.
+(Using <cite>pvs</cite> and <cite>lvs</cite> may help make this connection).</p>
+</section>
+<section id="inspecting-a-ceph-block-device-for-a-vm">
+<h3>Inspecting a Ceph Block Device for a VM<a class="headerlink" href="#inspecting-a-ceph-block-device-for-a-vm" title="Permalink to this heading">¶</a></h3>
+<p>To find out what block devices are attached to a VM, go to the hypervisor that
+it is running on (an admin-level user can see this from <code class="docutils literal notranslate"><span class="pre">openstack</span> <span class="pre">server</span>
+<span class="pre">show</span></code>).</p>
+<p>On this hypervisor, enter the libvirt container:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">comp0# docker exec -it nova_libvirt /bin/bash</span>
+</pre></div>
+</div>
+<p>Find the VM name using libvirt:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp gp-VirtualEnv">(nova-libvirt)</span><span class="gp">[root@comp0 /]# </span>virsh<span class="w"> </span>list
+<span class="go"> Id    Name                State</span>
+<span class="go">------------------------------------</span>
+<span class="go"> 1     instance-00000001   running</span>
+</pre></div>
+</div>
+<p>Now inspect the properties of the VM using <code class="docutils literal notranslate"><span class="pre">virsh</span> <span class="pre">dumpxml</span></code>:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp gp-VirtualEnv">(nova-libvirt)</span><span class="gp">[root@comp0 /]# </span>virsh<span class="w"> </span>dumpxml<span class="w"> </span>instance-00000001<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>rbd
+<span class="go">      &lt;source protocol=&#39;rbd&#39; name=&#39;acme-vms/51206278-e797-4153-b720-8255381228da_disk&#39;&gt;</span>
+</pre></div>
+</div>
+<p>On a Ceph node, the RBD pool can be inspected and the volume extracted as a RAW
+block image:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">ceph# rbd ls acme-vms</span>
+<span class="go">ceph# rbd export acme-vms/51206278-e797-4153-b720-8255381228da_disk blob.raw</span>
+</pre></div>
+</div>
+<p>The raw block device (blob.raw above) can be mounted using the loopback device.</p>
+</section>
+<section id="inspecting-a-qcow-image-using-libguestfs">
+<h3>Inspecting a QCOW Image using LibGuestFS<a class="headerlink" href="#inspecting-a-qcow-image-using-libguestfs" title="Permalink to this heading">¶</a></h3>
+<p>The virtual machine’s root image can be inspected by installing
+libguestfs-tools and using the guestfish command:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">ceph# export LIBGUESTFS_BACKEND=direct</span>
+<span class="go">ceph# guestfish -a blob.qcow</span>
+<span class="go">&gt;&lt;fs&gt; run</span>
+<span class="go"> 100% [XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX] 00:00</span>
+<span class="go">&gt;&lt;fs&gt; list-filesystems</span>
+<span class="go">/dev/sda1: ext4</span>
+<span class="go">&gt;&lt;fs&gt; mount /dev/sda1 /</span>
+<span class="go">&gt;&lt;fs&gt; ls /</span>
+<span class="go">bin</span>
+<span class="go">boot</span>
+<span class="go">dev</span>
+<span class="go">etc</span>
+<span class="go">home</span>
+<span class="go">lib</span>
+<span class="go">lib64</span>
+<span class="go">lost+found</span>
+<span class="go">media</span>
+<span class="go">mnt</span>
+<span class="go">opt</span>
+<span class="go">proc</span>
+<span class="go">root</span>
+<span class="go">run</span>
+<span class="go">sbin</span>
+<span class="go">srv</span>
+<span class="go">sys</span>
+<span class="go">tmp</span>
+<span class="go">usr</span>
+<span class="go">var</span>
+<span class="go">&gt;&lt;fs&gt; quit</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
 
 
           </div>
@@ -59,12 +282,21 @@
 <li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="working_with_openstack.html">Working with OpenStack</a></li>
 <li class="toctree-l1"><a class="reference internal" href="working_with_kayobe.html">Working with Kayobe</a></li>
+<li class="toctree-l1"><a class="reference internal" href="physical_network.html">Physical network</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hardware_inventory_management.html">Hardware Inventory Management</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Ceph Storage</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Ceph Storage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#working-with-ceph-deployment-tool">Working with Ceph deployment tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#operations">Operations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="managing_users_and_projects.html">Managing Users and Projects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="operations_and_monitoring.html">Operations and Monitoring</a></li>
+<li class="toctree-l1"><a class="reference internal" href="wazuh.html">Wazuh Security Platform</a></li>
 <li class="toctree-l1"><a class="reference internal" href="customising_deployment.html">Customising the OpenStack Deployment</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gpus_in_openstack.html">Support for GPUs in OpenStack</a></li>
+<li class="toctree-l1"><a class="reference internal" href="baremetal_management.html">Bare Metal Compute Hardware Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rally_and_tempest.html">Verifying the Cloud with Rally and Tempest</a></li>
 </ul>
 
 <div class="relations">
@@ -80,12 +312,12 @@
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -99,11 +331,11 @@
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2020, StackHPC Ltd.
+      &copy;2020-2023, StackHPC Ltd.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.4</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |
       <a href="_sources/ceph_storage.rst.txt"
