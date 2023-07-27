@@ -16,14 +16,23 @@ Ceph Storage
 
    The Ceph deployment is not managed by StackHPC Ltd.
 
+Working with Ceph deployment tool
+=================================
+
 .. ifconfig:: deployment['ceph_ansible']
 
-   Ceph Ansible
-   ============
+   .. include:: include/ceph_ansible.rst
 
-   .. include:: ceph_ansible.rst
+.. ifconfig:: deployment['cephadm']
 
-   Ceph Troubleshooting
-   ====================
+   .. include:: include/cephadm.rst
 
-   .. include:: ceph_troubleshooting.rst
+Operations
+==========
+
+.. include:: include/ceph_operations.rst
+
+Troubleshooting
+===============
+
+.. include:: include/ceph_troubleshooting.rst

@@ -1,17 +1,16 @@
-
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
     <title>Acme OpenStack Administration Guide &#8212; OpenStack Administration Guide  documentation</title>
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
-    <script src="_static/doctools.js"></script>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b3523f8e" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=039e1c02" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=b3ba4146"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=4825356b"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Introduction" href="introduction.html" />
@@ -31,16 +30,16 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="project-name-openstack-administration-guide">
-<h1>Acme OpenStack Administration Guide<a class="headerlink" href="#project-name-openstack-administration-guide" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+  <section id="project-name-openstack-administration-guide">
+<h1>Acme OpenStack Administration Guide<a class="headerlink" href="#project-name-openstack-administration-guide" title="Permalink to this heading">¶</a></h1>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this heading">¶</a></h2>
 <p>This is an administration guide detailing run-book procedures for common
 administration actions. The administration guide is expected to be augmented
 over time as Acme’s administration procedures evolve.</p>
-</div>
-<div class="section" id="contents">
-<h2>Contents<a class="headerlink" href="#contents" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="contents">
+<h2>Contents<a class="headerlink" href="#contents" title="Permalink to this heading">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a><ul>
@@ -63,8 +62,10 @@ over time as Acme’s administration procedures evolve.</p>
 <li class="toctree-l2"><a class="reference internal" href="working_with_kayobe.html#verifying-changes-before-applying">Verifying Changes Before Applying</a></li>
 <li class="toctree-l2"><a class="reference internal" href="working_with_kayobe.html#accessing-the-seed">Accessing the Seed</a></li>
 <li class="toctree-l2"><a class="reference internal" href="working_with_kayobe.html#accessing-the-bifrost-service">Accessing the Bifrost Service</a></li>
+<li class="toctree-l2"><a class="reference internal" href="working_with_kayobe.html#kayobe-environments">Kayobe Environments</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="physical_network.html">Physical network</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hardware_inventory_management.html">Hardware Inventory Management</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="hardware_inventory_management.html#reconfiguring-control-plane-hardware">Reconfiguring Control Plane Hardware</a></li>
 <li class="toctree-l2"><a class="reference internal" href="hardware_inventory_management.html#enrolling-new-hypervisors">Enrolling New Hypervisors</a></li>
@@ -73,7 +74,12 @@ over time as Acme’s administration procedures evolve.</p>
 <li class="toctree-l2"><a class="reference internal" href="hardware_inventory_management.html#detect-hardware-differences-with-cardiff">Detect hardware differences with cardiff</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="ceph_storage.html">Ceph Storage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ceph_storage.html">Ceph Storage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ceph_storage.html#working-with-ceph-deployment-tool">Working with Ceph deployment tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ceph_storage.html#operations">Operations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ceph_storage.html#troubleshooting">Troubleshooting</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="managing_users_and_projects.html">Managing Users and Projects</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="managing_users_and_projects.html#deleting-users-and-projects">Deleting Users and Projects</a></li>
 </ul>
@@ -81,6 +87,7 @@ over time as Acme’s administration procedures evolve.</p>
 <li class="toctree-l1"><a class="reference internal" href="operations_and_monitoring.html">Operations and Monitoring</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="operations_and_monitoring.html#access-to-kibana">Access to Kibana</a></li>
 <li class="toctree-l2"><a class="reference internal" href="operations_and_monitoring.html#access-to-grafana">Access to Grafana</a></li>
+<li class="toctree-l2"><a class="reference internal" href="operations_and_monitoring.html#access-to-prometheus-alertmanager">Access to Prometheus Alertmanager</a></li>
 <li class="toctree-l2"><a class="reference internal" href="operations_and_monitoring.html#migrating-virtual-machines">Migrating virtual machines</a></li>
 <li class="toctree-l2"><a class="reference internal" href="operations_and_monitoring.html#openstack-reconfiguration">OpenStack Reconfiguration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="operations_and_monitoring.html#backup-of-the-openstack-control-plane">Backup of the OpenStack Control Plane</a></li>
@@ -93,29 +100,37 @@ over time as Acme’s administration procedures evolve.</p>
 <li class="toctree-l2"><a class="reference internal" href="operations_and_monitoring.html#elasticsearch-indexes-retention">Elasticsearch indexes retention</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="wazuh.html">Wazuh Security Platform</a></li>
 <li class="toctree-l1"><a class="reference internal" href="customising_deployment.html">Customising the OpenStack Deployment</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="customising_deployment.html#horizon-customisations">Horizon customisations</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="gpus_in_openstack.html">Support for GPUs in OpenStack</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="gpus_in_openstack.html#bios-configuration-requirements">BIOS Configuration Requirements</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gpus_in_openstack.html#hypervisor-configuration-requirements">Hypervisor Configuration Requirements</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gpus_in_openstack.html#openstack-nova-configuration">OpenStack Nova configuration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gpus_in_openstack.html#testing-gpu-in-a-guest-vm">Testing GPU in a Guest VM</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gpus_in_openstack.html#further-reference">Further Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gpus_in_openstack.html#nvidia-virtual-gpu">NVIDIA Virtual GPU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gpus_in_openstack.html#pci-passthrough">PCI Passthrough</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="baremetal_management.html">Bare Metal Compute Hardware Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rally_and_tempest.html">Verifying the Cloud with Rally and Tempest</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rally_and_tempest.html#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rally_and_tempest.html#setup-rally-for-a-new-user">Setup Rally for a new user</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rally_and_tempest.html#install-shakespeare">Install Shakespeare</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rally_and_tempest.html#install-tempest-recipe">Install Tempest Recipe</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rally_and_tempest.html#rally-invocation">Rally invocation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rally_and_tempest.html#report-generation">Report generation</a></li>
 </ul>
 </li>
 </ul>
 </div>
-</div>
-<div class="section" id="indices-and-search">
-<h2>Indices and search<a class="headerlink" href="#indices-and-search" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="indices-and-search">
+<h2>Indices and search<a class="headerlink" href="#indices-and-search" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
 <li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
 </ul>
-</div>
-</div>
+</section>
+</section>
 
 
           </div>
@@ -138,12 +153,16 @@ over time as Acme’s administration procedures evolve.</p>
 <li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="working_with_openstack.html">Working with OpenStack</a></li>
 <li class="toctree-l1"><a class="reference internal" href="working_with_kayobe.html">Working with Kayobe</a></li>
+<li class="toctree-l1"><a class="reference internal" href="physical_network.html">Physical network</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hardware_inventory_management.html">Hardware Inventory Management</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ceph_storage.html">Ceph Storage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="managing_users_and_projects.html">Managing Users and Projects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="operations_and_monitoring.html">Operations and Monitoring</a></li>
+<li class="toctree-l1"><a class="reference internal" href="wazuh.html">Wazuh Security Platform</a></li>
 <li class="toctree-l1"><a class="reference internal" href="customising_deployment.html">Customising the OpenStack Deployment</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gpus_in_openstack.html">Support for GPUs in OpenStack</a></li>
+<li class="toctree-l1"><a class="reference internal" href="baremetal_management.html">Bare Metal Compute Hardware Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rally_and_tempest.html">Verifying the Cloud with Rally and Tempest</a></li>
 </ul>
 
 <div class="relations">
@@ -158,12 +177,12 @@ over time as Acme’s administration procedures evolve.</p>
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -177,11 +196,11 @@ over time as Acme’s administration procedures evolve.</p>
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2020, StackHPC Ltd.
+      &copy;2020-2023, StackHPC Ltd.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.4</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |
       <a href="_sources/index.rst.txt"

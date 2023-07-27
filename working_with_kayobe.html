@@ -1,20 +1,19 @@
-
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
     <title>Working with Kayobe &#8212; OpenStack Administration Guide  documentation</title>
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
-    <script src="_static/doctools.js"></script>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b3523f8e" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=039e1c02" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=b3ba4146"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=4825356b"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Hardware Inventory Management" href="hardware_inventory_management.html" />
+    <link rel="next" title="Physical network" href="physical_network.html" />
     <link rel="prev" title="Working with OpenStack" href="working_with_openstack.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
@@ -32,40 +31,42 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="working-with-kayobe">
-<h1>Working with Kayobe<a class="headerlink" href="#working-with-kayobe" title="Permalink to this headline">¶</a></h1>
+  <section id="working-with-kayobe">
+<h1>Working with Kayobe<a class="headerlink" href="#working-with-kayobe" title="Permalink to this heading">¶</a></h1>
 <p>Kayobe is the point of administration for infrastructure-as-code operations.
 Kayobe is installed and invoked from a host referred to as the Ansible Control
 Host.</p>
 <p>Kayobe is open source and can be downloaded from the Git repository
-<a class="reference external" href="https://github.com/acme-openstack/kayobe.git">https://github.com/acme-openstack/kayobe.git</a> (use the <code class="docutils literal notranslate"><span class="pre">acme/train</span></code> branch).</p>
+<a class="reference external" href="https://github.com/acme-openstack/kayobe.git">https://github.com/acme-openstack/kayobe.git</a> (use the <code class="docutils literal notranslate"><span class="pre">acme/yoga</span></code> branch).</p>
 <p>Kayobe’s online documentation is available here:
 <a class="reference external" href="https://docs.openstack.org/kayobe/latest/">https://docs.openstack.org/kayobe/latest/</a></p>
 <p>The infrastructure-as-code configuration state for the Acme OpenStack
-is here: <a class="reference external" href="https://github.com/acme-openstack/kayobe-config.git">https://github.com/acme-openstack/kayobe-config.git</a> (use the <code class="docutils literal notranslate"><span class="pre">acme/train</span></code>
+is here: <a class="reference external" href="https://github.com/acme-openstack/kayobe-config.git">https://github.com/acme-openstack/kayobe-config.git</a> (use the <code class="docutils literal notranslate"><span class="pre">acme/yoga</span></code>
 branch).</p>
 <p>When applying reconfigurations using Kayobe, always make sure that the
 Acme kayobe-config repository is current and up to date.</p>
-<div class="section" id="connecting-to-the-ansible-control-host">
-<h2>Connecting to the Ansible Control Host<a class="headerlink" href="#connecting-to-the-ansible-control-host" title="Permalink to this headline">¶</a></h2>
+<section id="connecting-to-the-ansible-control-host">
+<h2>Connecting to the Ansible Control Host<a class="headerlink" href="#connecting-to-the-ansible-control-host" title="Permalink to this heading">¶</a></h2>
 <p>The Ansible control host is any system that can access the seed VM (192.168.0.2)
 and control plane hosts through the provisioning network
 (192.168.0.0/24).</p>
 <p>acme-seed-hypervisor is used as the Ansible control host. Each operator uses their own account on this host, but with a shared SSH key stored as <code class="docutils literal notranslate"><span class="pre">~/.ssh/id_rsa</span></code>.</p>
-</div>
-<div class="section" id="making-a-kayobe-checkout">
-<h2>Making a Kayobe Checkout<a class="headerlink" href="#making-a-kayobe-checkout" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="making-a-kayobe-checkout">
+<h2>Making a Kayobe Checkout<a class="headerlink" href="#making-a-kayobe-checkout" title="Permalink to this heading">¶</a></h2>
 <p>A Kayobe checkout is made on the Ansible control host.</p>
 <p>A Kayobe development environment can easily be set up using a script called
-<code class="docutils literal notranslate"><span class="pre">beokay</span></code>, for example:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">kayobe# git clone https://github.com/markgoddard/beokay</span>
+<code class="docutils literal notranslate"><span class="pre">beokay</span></code>, for example. This command will need the <code class="docutils literal notranslate"><span class="pre">KAYOBE_VAULT_PASSWORD</span></code>
+environment variable to be set when secrets are encrypted with Ansible Vault.
+See the next section for details.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">kayobe# git clone https://github.com/stackhpc/beokay.git</span>
 <span class="go">kayobe# cd beokay/</span>
 <span class="go">kayobe# ./beokay.py create \</span>
 <span class="go">        --base-path ~/kayobe-env \</span>
 <span class="go">        --kayobe-repo https://github.com/acme-openstack/kayobe.git \</span>
-<span class="go">        --kayobe-branch acme/train \</span>
+<span class="go">        --kayobe-branch acme/yoga \</span>
 <span class="go">        --kayobe-config-repo https://github.com/acme-openstack/kayobe-config.git \</span>
-<span class="go">        --kayobe-config-branch acme/train</span>
+<span class="go">        --kayobe-config-branch acme/yoga</span>
 </pre></div>
 </div>
 <p>After making the checkout, source the virtualenv and Kayobe config environment variables:</p>
@@ -74,25 +75,30 @@ and control plane hosts through the provisioning network
 <span class="go">kayobe# source src/kayobe-config/kayobe-env</span>
 </pre></div>
 </div>
+<p>If you are using a Kayobe environment, you will instead need to specify which
+environment to source. See the section <a class="reference internal" href="#kayobe-environments"><span class="std std-ref">Kayobe Environments</span></a> for more details.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">kayobe# source src/kayobe-config/kayobe-env --environment &lt;env-name&gt;</span>
+</pre></div>
+</div>
 <p>Set up any dependencies needed on the control host:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">kayobe# kayobe control host bootstrap</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="deployment-secrets">
-<h2>Deployment Secrets<a class="headerlink" href="#deployment-secrets" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="deployment-secrets">
+<h2>Deployment Secrets<a class="headerlink" href="#deployment-secrets" title="Permalink to this heading">¶</a></h2>
 <p>The Acme Kayobe configuration uses Ansible Vault to store secrets
 such as IPMI credentials, Ceph account keys and OpenStack service credentials.</p>
 <p>The vault of deployment secrets is protected by a password, which
 conventionally is stored in a (mode 0400) file in the user home directory.</p>
 <p>An easy way to manage the vault password is to update <code class="docutils literal notranslate"><span class="pre">.bash_profile</span></code> to add
 a command such as:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">kayobe# export KAYOBE_VAULT_PASSWORD_FILE=~/vault.pass</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">kayobe# export KAYOBE_VAULT_PASSWORD=$(cat ~/vault-password)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="verifying-changes-before-applying">
-<h2>Verifying Changes Before Applying<a class="headerlink" href="#verifying-changes-before-applying" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="verifying-changes-before-applying">
+<h2>Verifying Changes Before Applying<a class="headerlink" href="#verifying-changes-before-applying" title="Permalink to this heading">¶</a></h2>
 <p>This section describes a way to check all the effects of a configuration change
 to the OpenStack control plane.</p>
 <p>Save the existing configuration from the control plane:</p>
@@ -109,6 +115,7 @@ to the OpenStack control plane.</p>
 <p>Gather the new configuration for comparison of changes:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">kayobe# mkdir ~/config-after</span>
 <span class="go">kayobe# kayobe overcloud service configuration save \</span>
+<span class="go">        --node-config-dir /tmp/config-new \</span>
 <span class="go">        --output-dir ~/config-after</span>
 </pre></div>
 </div>
@@ -121,29 +128,74 @@ to the OpenStack control plane.</p>
 <span class="go">diff -ru ~/config-before ~/config-after</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="accessing-the-seed">
-<h2>Accessing the Seed<a class="headerlink" href="#accessing-the-seed" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="accessing-the-seed">
+<h2>Accessing the Seed<a class="headerlink" href="#accessing-the-seed" title="Permalink to this heading">¶</a></h2>
 <p>The seed is a virtual machine. The seed is called acme-seed (192.168.0.2). The main
 user account on the seed is the stack user.</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">kayobe# ssh -l stack 192.168.0.2</span>
-<span class="gp">[stack@seed ~]$ </span>sudo docker ps
+<span class="go">seed# docker ps</span>
 <span class="go">CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                    NAMES</span>
 <span class="go">ed034742903b        registry:latest     &quot;/entrypoint.sh /etc…&quot;   2 months ago        Up 2 months         0.0.0.0:5000-&gt;5000/tcp   docker_registry</span>
 <span class="go">640221d53b0f        9355cba4a8cd        &quot;/sbin/init&quot;             2 months ago        Up 2 months                                  bifrost_deploy</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="accessing-the-bifrost-service">
-<span id="id1"></span><h2>Accessing the Bifrost Service<a class="headerlink" href="#accessing-the-bifrost-service" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="accessing-the-bifrost-service">
+<span id="id1"></span><h2>Accessing the Bifrost Service<a class="headerlink" href="#accessing-the-bifrost-service" title="Permalink to this heading">¶</a></h2>
 <p>From the seed host, the Bifrost container may be entered:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">seed# sudo docker exec -it bifrost_deploy /bin/bash</span>
-<span class="gp gp-VirtualEnv">(bifrost-deploy)</span><span class="gp">[root@seed bifrost-base]# </span><span class="nb">source</span> env-vars
-<span class="gp gp-VirtualEnv">(bifrost-deploy)</span><span class="gp">[root@seed bifrost-base]# </span>openstack baremetal node list
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">seed# docker exec -it bifrost_deploy /bin/bash</span>
+<span class="gp gp-VirtualEnv">(bifrost-deploy)</span><span class="gp">[root@seed bifrost-base]# </span><span class="nb">export</span><span class="w"> </span><span class="nv">OS_CLOUD</span><span class="o">=</span>bifrost
+<span class="gp gp-VirtualEnv">(bifrost-deploy)</span><span class="gp">[root@seed bifrost-base]# </span>baremetal<span class="w"> </span>node<span class="w"> </span>list
 </pre></div>
 </div>
+</section>
+<section id="kayobe-environments">
+<span id="id2"></span><h2>Kayobe Environments<a class="headerlink" href="#kayobe-environments" title="Permalink to this heading">¶</a></h2>
+<p>For the full details on using multiple environments, see the <a class="reference external" href="https://docs.openstack.org/kayobe/latest/multiple-environments.html">Kayobe
+documentation</a>.</p>
+<p>Kayobe supports configuring multiple environments under
+<code class="docutils literal notranslate"><span class="pre">etc/kayobe/environments</span></code>. These can be used to reduce duplicated configs
+between systems. Any shared config can be defined under the base layer
+<code class="docutils literal notranslate"><span class="pre">etc/kayobe</span></code>, and any system-specific config lives under
+<code class="docutils literal notranslate"><span class="pre">etc/kayobe/environments/&lt;env-name&gt;</span></code>.</p>
+<p>To use a specific environment with Kayobe, make sure to source its environment
+variables:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">kayobe# source src/kayobe-config/kayobe-env --environment &lt;env-name&gt;</span>
+</pre></div>
 </div>
+<p>The Kayobe inventory and configuration under the base layer <code class="docutils literal notranslate"><span class="pre">etc/kayobe</span></code> are
+merged automatically with the environment layer under
+<code class="docutils literal notranslate"><span class="pre">etc/kayobe/environments/&lt;env-name&gt;</span></code>. This means that files such as
+<code class="docutils literal notranslate"><span class="pre">globals.yml</span></code> or any host/group vars can be defined either within or outside
+of the environment. The base layer variables will be set on every system, and
+any environment-specific variables will only be set on their systems. Variables
+defined under an environment will take precedence over those defined in the
+base layer.</p>
+<p>The Kolla inventory under the base layer <code class="docutils literal notranslate"><span class="pre">etc/kayobe/kolla/inventory</span></code> is also
+merged with the environment layer under
+<code class="docutils literal notranslate"><span class="pre">etc/kayobe/environments/&lt;env-name&gt;/kolla/inventory</span></code>. However, Kolla config
+files do not yet support this. As such, any shared configuration under
+<code class="docutils literal notranslate"><span class="pre">etc/kayobe/kolla/config</span></code> will need to be symlinked into all environments
+under <code class="docutils literal notranslate"><span class="pre">etc/kayobe/environments/&lt;env-name&gt;/kolla/config</span></code>. An additional caveat
+is that only symlinked directories are supported. So any shared individual
+files will unfortunately need to be duplicated in each environment.</p>
+<p>If the majority of your Kolla config is intended to be shared, it is currently
+recommended that you symlink the entire <code class="docutils literal notranslate"><span class="pre">etc/kayobe/kolla/config</span></code> directory,
+and then template any specific variables based on the environment sources. For
+example:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">---</span>
+<span class="go">{% if kayobe_environment == &quot;env-us&quot; %}</span>
+<span class="go">region: US</span>
+<span class="go">{% elif kayobe_environment == &quot;env-uk&quot; %}</span>
+<span class="go">region: UK</span>
+<span class="go">{% endif %}</span>
+</pre></div>
 </div>
+<p>Please note that there is work ongoing to support the merging of Kolla
+configuration in the future.</p>
+</section>
+</section>
 
 
           </div>
@@ -172,14 +224,19 @@ user account on the seed is the stack user.</p>
 <li class="toctree-l2"><a class="reference internal" href="#verifying-changes-before-applying">Verifying Changes Before Applying</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#accessing-the-seed">Accessing the Seed</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#accessing-the-bifrost-service">Accessing the Bifrost Service</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#kayobe-environments">Kayobe Environments</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="physical_network.html">Physical network</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hardware_inventory_management.html">Hardware Inventory Management</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ceph_storage.html">Ceph Storage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="managing_users_and_projects.html">Managing Users and Projects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="operations_and_monitoring.html">Operations and Monitoring</a></li>
+<li class="toctree-l1"><a class="reference internal" href="wazuh.html">Wazuh Security Platform</a></li>
 <li class="toctree-l1"><a class="reference internal" href="customising_deployment.html">Customising the OpenStack Deployment</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gpus_in_openstack.html">Support for GPUs in OpenStack</a></li>
+<li class="toctree-l1"><a class="reference internal" href="baremetal_management.html">Bare Metal Compute Hardware Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rally_and_tempest.html">Verifying the Cloud with Rally and Tempest</a></li>
 </ul>
 
 <div class="relations">
@@ -187,7 +244,7 @@ user account on the seed is the stack user.</p>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
       <li>Previous: <a href="working_with_openstack.html" title="previous chapter">Working with OpenStack</a></li>
-      <li>Next: <a href="hardware_inventory_management.html" title="next chapter">Hardware Inventory Management</a></li>
+      <li>Next: <a href="physical_network.html" title="next chapter">Physical network</a></li>
   </ul></li>
 </ul>
 </div>
@@ -195,12 +252,12 @@ user account on the seed is the stack user.</p>
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -214,11 +271,11 @@ user account on the seed is the stack user.</p>
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2020, StackHPC Ltd.
+      &copy;2020-2023, StackHPC Ltd.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.4</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |
       <a href="_sources/working_with_kayobe.rst.txt"

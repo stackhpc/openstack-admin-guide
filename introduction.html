@@ -1,17 +1,16 @@
-
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
     <title>Introduction &#8212; OpenStack Administration Guide  documentation</title>
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
-    <script src="_static/doctools.js"></script>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b3523f8e" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=039e1c02" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=b3ba4146"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=4825356b"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Working with OpenStack" href="working_with_openstack.html" />
@@ -32,19 +31,19 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="introduction">
-<h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
+  <section id="introduction">
+<h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this heading">¶</a></h1>
 <p>This is an administration guide detailing run-book procedures for common
 administration actions. The administration guide is expected to be augmented
 over time as Acme’s admin procedures evolve.</p>
-<div class="section" id="project-name-openstack-reference-architecture">
-<h2>Acme OpenStack Reference Architecture<a class="headerlink" href="#project-name-openstack-reference-architecture" title="Permalink to this headline">¶</a></h2>
+<section id="project-name-openstack-reference-architecture">
+<h2>Acme OpenStack Reference Architecture<a class="headerlink" href="#project-name-openstack-reference-architecture" title="Permalink to this heading">¶</a></h2>
 <p>For further details on the architecture of the OpenStack deployment, consult
 the Acme OpenStack Reference Architecture on Google Drive:
 <a class="reference external" href="https://docs.google.com/document/u/0/?tgif=d">https://docs.google.com/document/u/0/?tgif=d</a></p>
-</div>
-<div class="section" id="document-conventions">
-<h2>Document Conventions<a class="headerlink" href="#document-conventions" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="document-conventions">
+<h2>Document Conventions<a class="headerlink" href="#document-conventions" title="Permalink to this heading">¶</a></h2>
 <p>There are various places where administrative commands of different types can
 be run. Where an example is given, the command prompt is set to indicate the
 appropriate environment.</p>
@@ -66,19 +65,16 @@ typically is a virtualenv created along with the Kayobe repo, and environment
 variables conventionally drawn from <code class="docutils literal notranslate"><span class="pre">kayobe-config/kayobe-env</span></code>. The
 <code class="docutils literal notranslate"><span class="pre">KAYOBE_VAULT_PASSWORD</span></code> environment variable may also need to be set.</p>
 <p><code class="docutils literal notranslate"><span class="pre">seed#</span></code></p>
-<p>A command that must be run on the seed VM.</p>
+<p>A command that must be run on the seed VM using the Kayobe Ansible user account
+(<code class="docutils literal notranslate"><span class="pre">stack</span></code> by default).</p>
 <p><code class="docutils literal notranslate"><span class="pre">bifrost#</span></code></p>
 <p>A command that must be run within the Bifrost service container, hosted on the seed VM.</p>
 <p><code class="docutils literal notranslate"><span class="pre">instance#</span></code></p>
 <p>A command that can be run (as superuser) from a running compute instance.</p>
-<p><code class="docutils literal notranslate"><span class="pre">monasca#</span></code></p>
-<p>A command that must be run with OpenStack control plane admin credentials
-loaded, and the Monasca client and supporting modules available (whether in a
-virtualenv or installed in the OS libraries).</p>
-</div>
-<div class="section" id="glossary-of-terms">
-<h2>Glossary of Terms<a class="headerlink" href="#glossary-of-terms" title="Permalink to this headline">¶</a></h2>
-<dl class="glossary simple">
+</section>
+<section id="glossary-of-terms">
+<h2>Glossary of Terms<a class="headerlink" href="#glossary-of-terms" title="Permalink to this heading">¶</a></h2>
+<dl class="simple glossary">
 <dt id="term-Cinder">Cinder<a class="headerlink" href="#term-Cinder" title="Permalink to this term">¶</a></dt><dd><p>OpenStack’s block-based storage service. Cinder implements volumes, which
 are persistent data storage that appears in VMs as block devices.
 <a class="reference external" href="https://docs.openstack.org/cinder/latest/">https://docs.openstack.org/cinder/latest/</a></p>
@@ -125,11 +121,6 @@ containers. <a class="reference external" href="https://docs.openstack.org/kolla
 <dt id="term-MLAG">MLAG<a class="headerlink" href="#term-MLAG" title="Permalink to this term">¶</a></dt><dd><p>Multi-Chassis Link Aggregate - a method of providing multi-pathing and
 multi-switch redundancy in layer-2 networks.</p>
 </dd>
-<dt id="term-Monasca">Monasca<a class="headerlink" href="#term-Monasca" title="Permalink to this term">¶</a></dt><dd><p>OpenStack’s monitoring service (“Monitoring as a Service at Scale”).
-Logging, telemetry and events from the infrastructure, control plane and
-user projects can be submitted and processed by Monasca.
-<a class="reference external" href="https://docs.openstack.org/monasca-api/latest/">https://docs.openstack.org/monasca-api/latest/</a></p>
-</dd>
 <dt id="term-Neutron">Neutron<a class="headerlink" href="#term-Neutron" title="Permalink to this term">¶</a></dt><dd><p>OpenStack’s networking service.
 <a class="reference external" href="https://docs.openstack.org/neutron/latest/">https://docs.openstack.org/neutron/latest/</a></p>
 </dd>
@@ -165,15 +156,15 @@ incur more overhead and may not be usable for RDMA-enabled compute VMs.</p>
 XML-based structured data between network entities.</p>
 </dd>
 </dl>
-</div>
-<div class="section" id="contacting-stackhpc-support">
-<h2>Contacting StackHPC Support<a class="headerlink" href="#contacting-stackhpc-support" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="contacting-stackhpc-support">
+<h2>Contacting StackHPC Support<a class="headerlink" href="#contacting-stackhpc-support" title="Permalink to this heading">¶</a></h2>
 <p>StackHPC’s technical team is available for standard support for OpenStack issues
 related to the Acme OpenStack deployment. StackHPC support can be
-contacted through the dedicated Slack channel or by direct email contact at
-<a class="reference external" href="mailto:acme-support&#37;&#52;&#48;stackhpc&#46;com">acme-support<span>&#64;</span>stackhpc<span>&#46;</span>com</a>.</p>
-</div>
-</div>
+contacted through the dedicated Slack channel or by direct email
+contact at <a class="reference external" href="mailto:acme-support&#37;&#52;&#48;stackhpc&#46;com">acme-support<span>&#64;</span>stackhpc<span>&#46;</span>com</a>.</p>
+</section>
+</section>
 
 
           </div>
@@ -202,12 +193,16 @@ contacted through the dedicated Slack channel or by direct email contact at
 </li>
 <li class="toctree-l1"><a class="reference internal" href="working_with_openstack.html">Working with OpenStack</a></li>
 <li class="toctree-l1"><a class="reference internal" href="working_with_kayobe.html">Working with Kayobe</a></li>
+<li class="toctree-l1"><a class="reference internal" href="physical_network.html">Physical network</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hardware_inventory_management.html">Hardware Inventory Management</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ceph_storage.html">Ceph Storage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="managing_users_and_projects.html">Managing Users and Projects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="operations_and_monitoring.html">Operations and Monitoring</a></li>
+<li class="toctree-l1"><a class="reference internal" href="wazuh.html">Wazuh Security Platform</a></li>
 <li class="toctree-l1"><a class="reference internal" href="customising_deployment.html">Customising the OpenStack Deployment</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gpus_in_openstack.html">Support for GPUs in OpenStack</a></li>
+<li class="toctree-l1"><a class="reference internal" href="baremetal_management.html">Bare Metal Compute Hardware Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rally_and_tempest.html">Verifying the Cloud with Rally and Tempest</a></li>
 </ul>
 
 <div class="relations">
@@ -223,12 +218,12 @@ contacted through the dedicated Slack channel or by direct email contact at
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -242,11 +237,11 @@ contacted through the dedicated Slack channel or by direct email contact at
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2020, StackHPC Ltd.
+      &copy;2020-2023, StackHPC Ltd.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.4</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |
       <a href="_sources/introduction.rst.txt"

@@ -57,7 +57,7 @@ Building a custom Horizon container image
 Building a custom container image for Horizon can be done by modifying
 ``kolla.yml`` to fetch the custom theme and include it in the image:
 
-.. code-block:: console
+.. code-block:: yaml
    :substitutions:
 
    kolla_sources:
@@ -78,11 +78,11 @@ Building a custom container image for Horizon can be done by modifying
        {% endif %}
        {% endraw %}
 
-If using Train on CentOS 8, don’t forget to set:
+If using a specific container image tag, don't forget to set:
 
-.. code-block:: console
+.. code-block:: yaml
 
-   kolla_tag: train-centos8
+   kolla_tag: mytag
 
 Build the image with:
 
@@ -101,9 +101,15 @@ Deploy and use the custom theme
 
 Switch to source image type in ``${KAYOBE_CONFIG_PATH}/kolla/globals.yml``:
 
-.. code-block:: console
+.. code-block:: yaml
 
    horizon_install_type: source
+
+You may also need to update the container image tag:
+
+.. code-block:: yaml
+
+   horizon_tag: mytag
 
 Configure Horizon to include the custom theme and use it by default:
 
@@ -134,7 +140,7 @@ Deploy with:
 
 .. code-block:: console
 
-   kayobe overcloud service reconfigure --kolla-tags horizon --kolla-skip-tags common --skip-prechecks
+   kayobe overcloud service reconfigure --kolla-tags horizon
 
 Troubleshooting
 ---------------
