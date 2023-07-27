@@ -63,7 +63,7 @@ After making the checkout, source the virtualenv and Kayobe config environment v
    kayobe# source src/kayobe-config/kayobe-env
 
 If you are using a Kayobe environment, you will instead need to specify which
-environment to source. See the section Kayobe Environments for more details.
+environment to source. See the section :ref:`Kayobe Environments` for more details.
 
 .. code-block:: console
    :substitutions:
@@ -163,6 +163,8 @@ From the seed host, the Bifrost container may be entered:
    (bifrost-deploy)[root@seed bifrost-base]# baremetal node list
 
 .. Consider adding a section about configuring the physical network.
+
+.. _Kayobe Environments:
 
 Kayobe Environments
 -------------------
