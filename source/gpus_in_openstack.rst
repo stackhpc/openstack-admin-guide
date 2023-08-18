@@ -47,9 +47,9 @@ running in a CI environment.
     pulp artifact upload --file ~/NVIDIA-GRID-Linux-KVM-525.105.14-525.105.17-528.89.zip
     pulp file content create --relative-path "NVIDIA-GRID-Linux-KVM-525.105.14-525.105.17-528.89.zip" --sha256 c8e12c15b881df35e618bdee1f141cbfcc7e112358f0139ceaa95b48e20761e0
     pulp file repository create --name nvidia
-    pulp file repository add --name nvidia --sha256 c8e12c15b881df35e618bdee1f141cbfcc7e112358f0139ceaa95b48e20761e0 --relative-path "NVIDIA-GRID-Linux-KVM-525.105.14-525.105.17-528.89.zip"
+    pulp file repository content add --repository nvidia --sha256 c8e12c15b881df35e618bdee1f141cbfcc7e112358f0139ceaa95b48e20761e0 --relative-path "NVIDIA-GRID-Linux-KVM-525.105.14-525.105.17-528.89.zip"
     pulp file publication create --repository nvidia
-    pulp file distribution update --name nvidia --base-path nvidia --repository nvidia
+    pulp file distribution create --name nvidia --base-path nvidia --repository nvidia
 
 The file will then be available at ``<pulp_url>/pulp/content/nvidia/NVIDIA-GRID-Linux-KVM-525.105.14-525.105.17-528.89.zip``. You
 will need to set the ``vgpu_driver_url`` configuration option to this value:
