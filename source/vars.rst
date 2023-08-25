@@ -3,7 +3,7 @@
 .. |bmc| replace:: BMC
 .. |chat_system| replace:: Slack
 .. |control_host_access| replace:: |control_host| is used as the Ansible control host. The stackhpc user is used by all operators.
-.. |control_host| replace:: al-ansible-01
+.. |control_host| replace:: dl-ansible-01
 .. |controller0_hostname| replace:: ``controller1``
 .. |controller1_hostname| replace:: ``controller2``
 .. |controller2_hostname| replace:: ``controller3``
@@ -45,8 +45,8 @@
 .. |seed_name| replace:: dl-seed
 .. |seed_type| replace:: virtual machine
 .. |seed_user| replace:: stack
-.. |support_email| replace:: acrc-support@stackhpc.com
-.. |support_level| replace:: standard support
+.. |support_email| replace:: <No support email is in place yet>
+.. |support_level| replace:: <No support is in place yet>
 .. |tempest_recipes| replace:: <No custom tempest recipes in use>
 .. |tls_setup| replace:: TLS is implemented using a wildcard certificate available for ``*.dl.acrc.bris.ac.uk``.
 .. |vault_password_file_path| replace:: ~/.vault-pass
