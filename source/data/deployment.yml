@@ -9,13 +9,13 @@ ceph_ansible: false
 cephadm: true
 
 # Whether the Ceph deployment is managed by StackHPC
-ceph_managed: false
+ceph_managed: true
 
 # Whether the OpenStack deployment includes Ironic for bare metal compute.
 ironic: false
 
 # Whether Ironic automated cleaning is enabled.
-ironic_automated_cleaning: true
+ironic_automated_cleaning: false
 
 # Whether Kayobe manages physical network devices.
 kayobe_manages_physical_network: true
