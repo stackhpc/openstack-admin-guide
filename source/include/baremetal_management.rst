@@ -3,9 +3,9 @@
 Ironic node life cycle
 ----------------------
 
-The deployment process is documented in the `Ironic User Guide <https://docs.openstack.org/ironic/wallaby/user/index.html>`__.
+The deployment process is documented in the `Ironic User Guide <https://docs.openstack.org/ironic/yoga/user/index.html>`__.
 The |project_name| OpenStack deployment uses the
-`direct deploy method <https://docs.openstack.org/ironic/wallaby/user/index.html#example-1-pxe-boot-and-direct-deploy-process>`__.
+`direct deploy method <https://docs.openstack.org/ironic/yoga/user/index.html#example-1-pxe-boot-and-direct-deploy-process>`__.
 
 The Ironic state machine can be found `here <https://docs.openstack.org/ironic/latest/user/states.html>`__. The rest of
 this documentation refers to these states and assumes that you have familiarity.
@@ -152,10 +152,10 @@ Static switch configuration
 
    - Configuration is done using a combination of ``group_vars`` and ``host_vars``
 
-     * The bulk of the configuration is done with templates in the `group_vars for the different switches groups <https://github.com/rug-cit-hpc/rug-kayobe-config/tree/rug/wallaby/etc/kayobe/environments/habrok/inventory/group_vars>`__. This allows us to share
+     * The bulk of the configuration is done with templates in the `group_vars for the different switches groups <https://github.com/rug-cit-hpc/rug-kayobe-config/tree/rug/yoga/etc/kayobe/environments/habrok/inventory/group_vars>`__. This allows us to share
        configuration templates across all switches.
      * Each switch has host variables defined in `host_vars
-       <https://github.com/rug-cit-hpc/rug-kayobe-config/tree/rug/wallaby/etc/kayobe/environments/habrok/inventory/group_vars>`_
+       <https://github.com/rug-cit-hpc/rug-kayobe-config/tree/rug/yoga/etc/kayobe/environments/habrok/inventory/group_vars>`_
        that provide configuration specific to the switch.
 
 .. ifconfig:: not deployment['kayobe_manages_physical_network']
@@ -230,7 +230,7 @@ Ironic node discovery
 
 Discovery is the process of PXE booting the nodes into the Ironic Python Agent (IPA) ramdisk. This ramdisk will collect hardware and networking configuration from the node in a process known as introspection. This data is used to populate the baremetal node object in Ironic. The series of steps you need to take to enrol a new node is as follows:
 
-- Ensure that all necessary `inspection rules <https://github.com/rug-cit-hpc/rug-kayobe-config/blob/rug/wallaby/etc/kayobe/inspector.yml>`_ are defined.
+- Ensure that all necessary `inspection rules <https://github.com/rug-cit-hpc/rug-kayobe-config/blob/rug/yoga/etc/kayobe/inspector.yml>`_ are defined.
 
 - Configure credentials on the |bmc|. These are needed for Ironic to be able to perform power control actions.
 
@@ -259,7 +259,7 @@ Discovery is the process of PXE booting the nodes into the Ironic Python Agent (
 
    - Put the node onto the provisioning network.
 
-- Add node to the `kayobe inventory <https://github.com/rug-cit-hpc/rug-kayobe-config/blob/rug/wallaby/etc/kayobe/environments/habrok/inventory/hosts>`_.
+- Add node to the `kayobe inventory <https://github.com/rug-cit-hpc/rug-kayobe-config/blob/rug/yoga/etc/kayobe/environments/habrok/inventory/hosts>`_.
 
 - PXE boot the node.
 
@@ -279,7 +279,7 @@ Networking Generic Switch must be aware of the Top-of-Rack switch connected to t
 Switches managed by NGS are configured in ``ml2_conf.ini``.
 This file is generated based on the ``kolla_neutron_ml2_generic_switch_hosts``
 and ``kolla_neutron_ml2_generic_switch_extra`` variables in `neutron.yml
-<https://github.com/rug-cit-hpc/rug-kayobe-config/blob/rug/wallaby/etc/kayobe/environments/habrok/neutron.yml>`_.
+<https://github.com/rug-cit-hpc/rug-kayobe-config/blob/rug/yoga/etc/kayobe/environments/habrok/neutron.yml>`_.
 
 After adding switches to the NGS configuration, Neutron must be redeployed.
 
@@ -308,6 +308,6 @@ The Bateleur system uses deploy templates to enable or disable hyperthreading.
 Bare metal compute nodes have hyperthreading disabled, while hypervisors have hyperthreading enabled.
 
 This relies on two traits, ``CUSTOM_HYPERTHREADING_ENABLED`` and ``CUSTOM_HYPERTHREADING_DISABLED``, as well as two corresponding deploy templates.
-Bare metal nodes are marked as supporting both traits via an `inspection rule <https://github.com/rug-cit-hpc/rug-kayobe-config/blob/rug/wallaby/etc/kayobe/inspector.yml>`__.
+Bare metal nodes are marked as supporting both traits via an `inspection rule <https://github.com/rug-cit-hpc/rug-kayobe-config/blob/rug/yoga/etc/kayobe/inspector.yml>`__.
 Baremetal Nova flavors are marked as `requiring <https://github.com/rug-cit-hpc/rug-config/blob/b56559574f96997facd9e8133c708efef3277178/etc/openstack-config/openstack-config.yml#L498>`__ the ``CUSTOM_HYPERTHREADING_DISABLED`` trait, while the hypervisor flavor is marked as `requiring <https://github.com/rug-cit-hpc/rug-config/blob/b56559574f96997facd9e8133c708efef3277178/etc/openstack-config/openstack-config.yml#L550>`__ the ``CUSTOM_HYPERTHREADING_ENABLED`` trait.
 A deploy template is `registered in Ironic <https://github.com/rug-cit-hpc/rug-config/blob/b56559574f96997facd9e8133c708efef3277178/etc/openstack-config/openstack-config.yml#L724>`__ for each of these traits.

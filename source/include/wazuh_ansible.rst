@@ -74,7 +74,7 @@ The hosts running Wazuh Agent should automatically be registered
 and visible within the Wazuh Manager dashboard.
 
 .. note:: It is good practice to use a `Kayobe deploy hook
-  <https://docs.openstack.org/kayobe/wallaby/custom-ansible-playbooks.html#hooks>`_
+  <https://docs.openstack.org/kayobe/yoga/custom-ansible-playbooks.html#hooks>`_
   to automate deployment and configuration of the Wazuh Agent
   following a run of ``kayobe overcloud host configure``.
 
