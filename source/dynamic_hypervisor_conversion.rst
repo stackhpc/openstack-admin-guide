@@ -17,6 +17,10 @@ This procedure will enable the conversion of baremetal nodes into hypervisors. T
 OpenStack commands
 ------------------
 
+#. Source the OpenStack admin credentials::
+
+    source |base_path|/src/|kayobe_config|/etc/kolla/public-openrc.sh
+
 #. Choose a node to convert. Check the node’s ``resource_class`` is equal to ``baremetal``. If not, pick another node::
 
     openstack baremetal node show <node> -f value -c resource_class
@@ -47,6 +51,10 @@ OpenStack commands
 
 Kayobe commands
 ---------------
+
+#. Source the OpenStack admin credentials::
+
+    source |base_path|/src/|kayobe_config|/etc/kolla/public-openrc.sh
 
 #. Rename the baremetal compute node by editing ``tools/hosts.csv``::
 
@@ -136,6 +144,10 @@ This procedure will convert hypervisors back into baremetal instances effectivel
 Kayobe commands
 ---------------
 
+#. Source the OpenStack admin credentials::
+
+    source |base_path|/src/|kayobe_config|/etc/kolla/public-openrc.sh
+
 #. Disable nova compute services on the hypervisor you are converting into a baremetal node::
 
     kayobe playbook run ${KAYOBE_CONFIG_PATH}/ansible/nova-compute-disable.yml --limit <hypervisor>
@@ -186,6 +198,10 @@ Kayobe commands
 
 OpenStack commands
 ------------------
+
+#. Source the OpenStack admin credentials::
+
+    source |base_path|/src/|kayobe_config|/etc/kolla/public-openrc.sh
 
 #. Remove the OpenStack compute service from the disabled and drained hypervisor::
 
