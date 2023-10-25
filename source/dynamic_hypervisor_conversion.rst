@@ -17,6 +17,10 @@ This procedure will enable the conversion of baremetal nodes into hypervisors. T
 OpenStack commands
 ------------------
 
+#. Source the OpenStack admin credentials::
+
+    source |base_path|/src/|kayobe_config|/etc/kolla/public-openrc.sh
+
 #. Choose a node to convert. Check the node’s ``resource_class`` is equal to ``baremetal``. If not, pick another node::
 
     openstack baremetal node show <node> -f value -c resource_class
@@ -47,6 +51,10 @@ OpenStack commands
 
 Kayobe commands
 ---------------
+
+#. Source the OpenStack admin credentials::
+
+    source |base_path|/src/|kayobe_config|/etc/kolla/public-openrc.sh
 
 #. Rename the baremetal compute node by editing ``tools/hosts.csv``::
 
@@ -136,6 +144,10 @@ This procedure will convert hypervisors back into baremetal instances effectivel
 Kayobe commands
 ---------------
 
+#. Source the OpenStack admin credentials::
+
+    source |base_path|/src/|kayobe_config|/etc/kolla/public-openrc.sh
+
 #. Disable nova compute services on the hypervisor you are converting into a baremetal node::
 
     kayobe playbook run ${KAYOBE_CONFIG_PATH}/ansible/nova-compute-disable.yml --limit <hypervisor>
@@ -187,6 +199,10 @@ Kayobe commands
 OpenStack commands
 ------------------
 
+#. Source the OpenStack admin credentials::
+
+    source |base_path|/src/|kayobe_config|/etc/kolla/public-openrc.sh
+
 #. Remove the OpenStack compute service from the disabled and drained hypervisor::
 
     openstack compute service delete <hypervisor>
@@ -224,3 +240,96 @@ OpenStack commands
 #. Finally unset maintenance mode on the baremetal compute node::
 
     openstack baremetal node maintenance unset <node>
+
+Hypervisor rebuild
+==================
+
+Kayobe commands
+---------------
+
+#. Source the OpenStack admin credentials::
+
+    source |base_path|/src/|kayobe_config|/etc/kolla/public-openrc.sh
+
+#. Disable nova compute services on the hypervisor you are converting into a baremetal node::
+
+    kayobe playbook run ${KAYOBE_CONFIG_PATH}/ansible/nova-compute-disable.yml --limit <hypervisor>
+
+#. Drain the hypervisor of all virtual machines::
+
+    kayobe playbook run ${KAYOBE_CONFIG_PATH}/ansible/nova-compute-drain.yml --limit <hypervisor>
+
+OpenStack commands
+------------------
+
+#. Source the OpenStack admin credentials::
+
+    source |base_path|/src/|kayobe_config|/etc/kolla/public-openrc.sh
+
+#. Remove the OpenStack compute service from the disabled and drained hypervisor::
+
+    openstack compute service delete <hypervisor>
+
+#. Get the ``instance_uuid`` of the instance running on the hypervisor::
+
+    openstack baremetal node show <hypervisor> -f value -c instance_uuid
+
+#. Delete the hypervisor instance running on the hypervisor::
+
+    openstack server delete <instance_uuid>
+
+#. Wait for the node to finish deprovisioning and to move though the process to an ``available`` provision state. You can check the state using ``baremetal node show``::
+
+    watch -n 10 -d=permanent openstack baremetal node show <hypervisor> \
+        -f yaml -c provision_state -c provision_updated_at
+
+#. Find the OVN controller agent and OVN Metadata agent associated with the hypervisor, make note of the UUID of the OVN Metadata agent::
+
+    openstack network agent list --fit-width
+
+#. Delete both the OVN controller agent and OVN Metadata agent associated with the hypervisor::
+
+    openstack network agent delete <hypervisor>
+    openstack network agent delete <metadata-uuid>
+
+#. Get the Ironic node UUID::
+
+    openstack baremetal node show <hypervisor> -f value -c uuid
+
+#. Create Nova instance for the hypervisor::
+
+    openstack server create <hypervisor> \
+        --flavor hypervisor --image overcloud-ubuntu-focal \
+        --network provision-overcloud --key-name admin \
+        --availability-zone nova::<ironic node UUID> \
+        --os-compute-api-version 2.74
+
+#. Query the instance until it has been assigned an IP address on the ``provision-overcloud`` network and the ``status`` is ``ACTIVE``::
+
+    openstack server show <hypervisor>
+
+Kayobe commands
+---------------
+
+#. Add the IP address to the ``provision_oc_ips`` dict by editing ``~/deployment/src/kayobe-config/etc/kayobe/environments/habrok/network-allocation.yml``::
+
+    provision_oc_ips:
+      <other hosts>
+      <hypervisor>: <ip_address>
+
+#. Reconfigure the leaf switch ports to apply trunked VLANs::
+
+    kayobe physical network configure --group leaf-switches
+
+#. Perform a host configuration::
+
+    kayobe overcloud host configure -l compute
+
+#. Deploy overcloud services onto the hypervisor::
+
+    kayobe overcloud service deploy -kl compute
+
+#. Commit the changes to the ``kayobe-config`` repository and open a pull request::
+
+    git add -u
+    git commit -m "feat: rebuild hypervisor"
