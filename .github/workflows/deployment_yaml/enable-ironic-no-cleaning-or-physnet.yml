@@ -1,7 +1,12 @@
 ---
 ceph: true
 ceph_ansible: false
+cephadm: false
 ceph_managed: false
 ironic: true
 ironic_automated_cleaning: false
 kayobe_manages_physical_network: false
+physical_network_evpn: false
+wazuh: false
+wazuh_managed: false
+wazuh_ansible: false
