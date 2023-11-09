@@ -123,7 +123,7 @@ Static switch configuration
    - Optionally switches the node onto the provisioning network (when using ``--enable-discovery``)
 
      + NOTE: This is a dangerous operation as it can wipe out the dynamic VLAN configuration applied by neutron/ironic.
-       You should only run this when initially enrolling a node. It is possible to use the ``interface-description-limit``. For example:
+       You should only run this when initially enrolling a node, and should always use the ``interface-description-limit`` option. For example:
 
        .. code-block::
 
@@ -156,7 +156,7 @@ Ironic dynamically configures the switches using the Neutron `Networking Generic
 
 - Only configures VLAN membership of the switch interfaces or port groups. To prevent conflicts with the static switch configuration,
   the convention used is: after the node is in service in Ironic, VLAN membership should not be manually adjusted and
-  should be left to be controlled by ironic i.e *don't* use ``--enable-discovery`` without a limit when configuring the
+  should be left to be controlled by ironic i.e *don't* use ``--enable-discovery`` without an interface limit when configuring the
   switches with kayobe.
 - Ironic is configured to use the neutron networking driver.
 
@@ -202,7 +202,7 @@ The switch configuration that NGS will apply to these ports is detailed in :ref:
 Ironic node discovery
 ---------------------
 
-Discovery is the process of PXE booting the nodes into the Ironic Python Agent (IPA) ramdisk. This ramdisk will collect hardware and networking configuration from the node in a process known as introspection. This data is used to populate the baremetal node object in Ironic. The series of steps you need to take to enrol a new node is as follows:
+Discovery is a process used to automatically enrol new nodes in Ironic. It works by PXE booting the nodes into the Ironic Python Agent (IPA) ramdisk. This ramdisk will collect hardware and networking configuration from the node in a process known as introspection. This data is used to populate the baremetal node object in Ironic. The series of steps you need to take to enrol a new node is as follows:
 
 - Configure credentials on the |bmc|. These are needed for Ironic to be able to perform power control actions.
 
@@ -220,7 +220,7 @@ Discovery is the process of PXE booting the nodes into the Ironic Python Agent (
 
 .. ifconfig:: deployment['kayobe_manages_physical_network']
 
-   - Put the node onto the provisioning network by using the ``--enable discovery`` flag. See :ref:`static-switch-config`.
+   - Put the node onto the provisioning network by using the ``--enable-discovery`` flag and either ``--interface-description-limit`` or ``--interface-limit`` (do not run this command without one of these limits). See :ref:`static-switch-config`.
 
      * This is only necessary to initially discover the node. Once the node is in registered in Ironic,
        it will take over control of the the VLAN membership. See :ref:`dynamic-switch-configuration`.
@@ -242,6 +242,27 @@ Discovery is the process of PXE booting the nodes into the Ironic Python Agent (
 .. TODO: Fill in details about how to trigger a PXE boot
 
 - PXE boot the node.
+
+- If the discovery process is successful, the node will appear in Ironic and will get populated with the necessary information from the hardware inspection process.
+
+.. TODO: Link to the Kayobe inventory in the repo
+
+- Add node to the Kayobe inventory in the ``baremetal-compute`` group.
+
+- The node will begin in the ``enroll`` state, and must be moved first to ``manageable``, then ``available`` before it can be used.
+
+  .. ifconfig:: deployment['ironic_automated_cleaning']
+
+     The node must complete a cleaning process before it can reach the available state.
+
+  * Use Kayobe to attempt to move the node to the ``available`` state.
+
+    .. code-block:: console
+
+       source etc/kolla/public-openrc.sh
+       kayobe baremetal compute provide --limit <node>
+
+- Once the node is in the ``available`` state, Nova will make the node available for scheduling. This happens periodically, and typically takes around a minute.
 
 .. _tor-switch-configuration:
 
