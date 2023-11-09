@@ -3,17 +3,35 @@ name: Build OpenStack admin guide
 on: 
   - pull_request
 jobs:
+  # Dynamically define test matrix.
+  # In openstack-admin-guide CI we want to test various configurations.
+  # In client admin guide CI we just want to test the actual configuration.
+  # https://stackoverflow.com/questions/65384420/how-do-i-make-a-github-action-matrix-element-conditional
+  matrix:
+    name: Generate test matrix
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Generate test matrix
+        id: set-matrix
+        run: |
+          echo -n "matrix={\"deployment_yaml\": [\"default\"" >> $GITHUB_OUTPUT
+          if [[ ${{ github.repository }} == 'stackhpc/openstack-admin-guide' ]]; then
+              for yaml in $(ls .github/workflows/deployment_yaml/); do
+                  echo -n ", \"$yaml\"" >> $GITHUB_OUTPUT
+              done
+          fi
+          echo "]}" >> $GITHUB_OUTPUT
+
   build:
     name: Build OpenStack admin guide
+    needs: matrix
     runs-on: ubuntu-latest
     strategy:
-      matrix:
-        deployment_yaml:
-          - __default__
-          - disable-ceph
-          - enable-ironic
-          - enable-ironic-no-cleaning-or-physnet
-    if: github.repository == 'stackhpc/openstack-admin-guide' || matrix.deployment_yaml == '__default__'
+      matrix: ${{ fromJson(needs.matrix.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v3
 
@@ -25,8 +43,8 @@ jobs:
         run: pip3 install -r requirements.txt
 
       - name: Copy deployment.yml into place
-        run: cp .github/workflows/deployment_yaml/${{ matrix.deployment_yaml }}.yml source/data/deployment.yml
-        if: matrix.deployment_yaml != '__default__'
+        run: cp .github/workflows/deployment_yaml/${{ matrix.deployment_yaml }} source/data/deployment.yml
+        if: matrix.deployment_yaml != 'default'
 
       - name: Build HTML
         run: make html
