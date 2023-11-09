@@ -6,6 +6,7 @@ ceph_managed: false
 ironic: false
 ironic_automated_cleaning: true
 kayobe_manages_physical_network: true
+physical_network_evpn: false
 wazuh: false
 wazuh_managed: false
 wazuh_ansible: false
