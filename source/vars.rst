@@ -21,13 +21,13 @@
 .. |hypervisor_type| replace:: KVM
 .. |ipmi_username| replace:: root
 .. |kayobe_config_source_url| replace:: https://github.com/ACRC/dl-kayobe-config.git
-.. |kayobe_config_source_version| replace:: ``bristol/yoga``
+.. |kayobe_config_source_version| replace:: ``bristol/2023.1``
 .. |kayobe_config| replace:: kayobe-config
 .. |kayobe_source_url| replace:: https://github.com/stackhpc/kayobe.git
-.. |kayobe_source_version| replace:: ``stackhpc/yoga``
+.. |kayobe_source_version| replace:: ``stackhpc/2023.1``
 .. |keystone_public_url| replace:: https://api.dl.acrc.bris.ac.uk:5000
 .. |kibana_url| replace:: https://api.dl.acrc.bris.ac.uk:5601
-.. |kolla_passwords| replace:: https://github.com/ACRC/dl-kayobe-config/blob/bristol/yoga/etc/kayobe/kolla/passwords.yml
+.. |kolla_passwords| replace:: https://github.com/ACRC/dl-kayobe-config/blob/bristol/2023.1/etc/kayobe/environments/production/kolla/passwords.yml
 .. |monitoring_host| replace:: ``controller1``
 .. |network_name| replace:: demo-vxlan
 .. |nova_rbd_pool| replace:: vms
@@ -45,8 +45,8 @@
 .. |seed_name| replace:: dl-seed
 .. |seed_type| replace:: virtual machine
 .. |seed_user| replace:: stack
-.. |support_email| replace:: <No support email is in place yet>
-.. |support_level| replace:: <No support is in place yet>
+.. |support_email| replace:: bristol-support@stackhpc.com
+.. |support_level| replace:: standard support
 .. |tempest_recipes| replace:: <No custom tempest recipes in use>
 .. |tls_setup| replace:: TLS is implemented using a wildcard certificate available for ``*.dl.acrc.bris.ac.uk``.
 .. |vault_password_file_path| replace:: ~/.vault-pass
