@@ -269,6 +269,152 @@ The images stored locally in the seed host can be seen using ``docker image ls``
 Old and redundant images can be identified from their names and tags, and
 removed using ``docker image rm``.
 
+Octavia
++++++++
+
+Octavia uses mutual TLS to secure communication between the amphorae and
+Octavia services. It uses a private CA to sign both client and server
+certificates. We use the kolla-ansible built-in support for generating these
+certificates:
+
+.. code-block:: console
+
+   kayobe# kayobe kolla ansible run octavia-certificates
+
+This command will output certificates and keys in ``${KOLLA_CONFIG_PATH}/octavia-certificates``
+
+Copy the relevant certificates into your kayobe-config:
+
+.. code-block:: console
+
+   kayobe# cd ${KAYOBE_CONFIG_PATH}/environments/$KAYOBE_ENVIRONMENT/kolla/config/octavia
+   kayobe# cp $KOLLA_CONFIG_PATH/octavia-certificates/client_ca/client_ca.cert.pem .
+   kayobe# cp $KOLLA_CONFIG_PATH/octavia-certificates/client_ca/client.cert-and-key.pem .
+   kayobe# cp $KOLLA_CONFIG_PATH/octavia-certificates/client_ca/server_ca.cert.pem .
+   kayobe# cp $KOLLA_CONFIG_PATH/octavia-certificates/client_ca/server_ca.key.pem .
+
+Encrypt any files containing the keys:
+
+.. code-block:: console
+
+   kayobe# ansible-vault encrypt client.cert-and-key.pem --vault-password-file ~/vault 
+   Encryption successful
+   kayobe# ansible-vault encrypt server_ca.key.pem --vault-password-file ~/vault 
+   Encryption successful
+
+Checking certificate expiry
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: console
+
+   kayobe# ansible-vault decrypt client.cert-and-key.pem --vault-password-file  ~/vault
+   Decryption successful
+   kayobe# openssl x509 -enddate -noout -in client.cert-and-key.pem 
+   notAfter=Aug 12 10:45:35 2022 GMT
+
+Backing up the octavia-certificates directory
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the root of your kayobe-config checkout:
+
+.. code-block:: console
+
+   kayobe# tools/backup-octavia-certificates.sh
+
+This will output an encrypted backup to ``$KAYOBE_CONFIG_PATH/environments/$KAYOBE_ENVIRONMENT/kolla/certificates/octavia-certificates-backup.tar``
+Commit this file to store the backup.
+
+Restoring octavia-certificates directory when regenerating certificates
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the root of your kayobe-config checkout:
+
+.. code-block:: console
+
+   kayobe# tools/restore-octavia-certificates.sh
+
+This will use the encrypted backup in ``$KAYOBE_CONFIG_PATH/environments/$KAYOBE_ENVIRONMENT/kolla/certificates/octavia-certificates-backup.tar``
+to restore ``${KOLLA_CONFIG_PATH}/octavia-certificates``. This will allow you
+to reuse the client CA.
+
+Rotating client.cert-and-key.pem
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This has a life time of 1 year. 
+
+1) Follow the steps to restore octavia-certificates so you can reuse the client CA. 
+2) Make sure your config allows you to regenerate a certificate with the same common name
+
+   .. code-block:: console
+      :caption: $KOLLA_CONFIG_PATH/octavia-certificates/client_ca/index.txt.attr 
+
+      unique_subject = no
+
+3) Remove the old files relating to the client certificate:
+
+   .. code-block:: console
+      
+      kayobe# rm $KOLLA_CONFIG_PATH/octavia-certificates/client_ca/{client.cert-and-key.pem,client.csr.pem,client.cert.pem}
+
+4) Regenerate the certificates
+
+   .. code-block:: console
+      
+      kayobe# kayobe kolla ansible run octavia-certificates
+
+5) Backup your octavia-certificates directory (see previous section).
+
+6) Copy your new certificate to the correct location:
+
+   .. code-block:: console
+
+      cd ${KAYOBE_CONFIG_PATH}/environments/$KAYOBE_ENVIRONMENT/kolla/config/octavia
+      kayobe# cp  $KOLLA_CONFIG_PATH/octavia-certificates/client_ca/client_ca.cert.pem .
+      kayobe# cp  $KOLLA_CONFIG_PATH/octavia-certificates/client_ca/client.cert-and-key.pem .
+      kayobe# ansible-vault encrypt client.cert-and-key.pem --vault-password-file ~/vault 
+      Encryption successful
+
+7) Reconfigure octavia
+
+   .. code-block:: console
+      
+      kayobe# kayobe overcloud service reconfigure -kt octavia
+
+8) Run tempest with the `octavia` test list to check it is working.
+
+9) Commit and push any changes.
+
+Rotating the CAs
+~~~~~~~~~~~~~~~~
+
+The CAs have a 10 year lifetime. Simply delete the relevant directory under
+``$KOLLA_CONFIG_PATH/octavia-certificates/`` and regenerate it with:
+
+   .. code-block:: console
+      
+      kayobe# kayobe kolla ansible run octavia-certificates
+
+Copy the relevant certificates into your kayobe-config.
+
+.. code-block:: console
+
+   kayobe# cd ${KAYOBE_CONFIG_PATH}/environments/$KAYOBE_ENVIRONMENT/kolla/config/octavia
+   kayobe# cp $KOLLA_CONFIG_PATH/octavia-certificates/client_ca/client_ca.cert.pem .
+   kayobe# cp $KOLLA_CONFIG_PATH/octavia-certificates/client_ca/client.cert-and-key.pem .
+   kayobe# cp $KOLLA_CONFIG_PATH/octavia-certificates/client_ca/server_ca.cert.pem .
+   kayobe# cp $KOLLA_CONFIG_PATH/octavia-certificates/client_ca/server_ca.key.pem .
+
+Encrypt any files containing the keys.
+
+.. code-block:: console
+
+   kayobe# ansible-vault encrypt client.cert-and-key.pem --vault-password-file ~/vault 
+   Encryption successful
+   kayobe# ansible-vault encrypt server_ca.key.pem --vault-password-file ~/vault 
+   Encryption successful
+
+Follow any instructions in the `upstream docs <https://docs.openstack.org/octavia/latest/admin/guides/operator-maintenance.html>`_.
+
 Backup of the OpenStack Control Plane
 =====================================
 
