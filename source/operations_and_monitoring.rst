@@ -312,30 +312,12 @@ Checking certificate expiry
    kayobe# openssl x509 -enddate -noout -in client.cert-and-key.pem 
    notAfter=Aug 12 10:45:35 2022 GMT
 
-Backing up the octavia-certificates directory
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-In the root of your kayobe-config checkout:
+There is also support in Kolla-Ansible to check if certs will expire within a
+given number of days:
 
 .. code-block:: console
 
-   kayobe# tools/backup-octavia-certificates.sh
-
-This will output an encrypted backup to ``$KAYOBE_CONFIG_PATH/environments/$KAYOBE_ENVIRONMENT/kolla/certificates/octavia-certificates-backup.tar``
-Commit this file to store the backup.
-
-Restoring octavia-certificates directory when regenerating certificates
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-In the root of your kayobe-config checkout:
-
-.. code-block:: console
-
-   kayobe# tools/restore-octavia-certificates.sh
-
-This will use the encrypted backup in ``$KAYOBE_CONFIG_PATH/environments/$KAYOBE_ENVIRONMENT/kolla/certificates/octavia-certificates-backup.tar``
-to restore ``${KOLLA_CONFIG_PATH}/octavia-certificates``. This will allow you
-to reuse the client CA.
+   kayobe# kayobe kolla ansible run "octavia-certificates <number-of-days>
 
 Rotating client.cert-and-key.pem
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
