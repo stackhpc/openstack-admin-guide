@@ -385,9 +385,9 @@ Remove the existing CAs where appropriate:
 
 Generate new CAs and certificates:
 
-   .. code-block:: console
+.. code-block:: console
 
-      kayobe kolla ansible run octavia-certificates -ke node_custom_config=$KAYOBE_CONFIG_PATH/kolla/config -ke node_config=$KAYOBE_CONFIG_PATH/kolla
+   kayobe kolla ansible run octavia-certificates -ke node_custom_config=$KAYOBE_CONFIG_PATH/kolla/config -ke node_config=$KAYOBE_CONFIG_PATH/kolla
 
 Encrypt the changed files that we are interested in:
 
