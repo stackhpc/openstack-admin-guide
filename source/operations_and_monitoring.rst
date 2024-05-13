@@ -275,32 +275,12 @@ Octavia
 Octavia uses mutual TLS to secure communication between the amphorae and
 Octavia services. It uses a private CA to sign both client and server
 certificates. We use the kolla-ansible built-in support for generating these
-certificates:
+certificates.
 
-.. code-block:: console
-
-   kayobe# kayobe kolla ansible run octavia-certificates
-
-This command will output certificates and keys in ``${KOLLA_CONFIG_PATH}/octavia-certificates``
-
-Copy the relevant certificates into your kayobe-config:
-
-.. code-block:: console
-
-   kayobe# cd ${KAYOBE_CONFIG_PATH}/environments/$KAYOBE_ENVIRONMENT/kolla/config/octavia
-   kayobe# cp $KOLLA_CONFIG_PATH/octavia-certificates/client_ca/client_ca.cert.pem .
-   kayobe# cp $KOLLA_CONFIG_PATH/octavia-certificates/client_ca/client.cert-and-key.pem .
-   kayobe# cp $KOLLA_CONFIG_PATH/octavia-certificates/client_ca/server_ca.cert.pem .
-   kayobe# cp $KOLLA_CONFIG_PATH/octavia-certificates/client_ca/server_ca.key.pem .
-
-Encrypt any files containing the keys:
-
-.. code-block:: console
-
-   kayobe# ansible-vault encrypt client.cert-and-key.pem --vault-password-file ~/vault 
-   Encryption successful
-   kayobe# ansible-vault encrypt server_ca.key.pem --vault-password-file ~/vault 
-   Encryption successful
+We ensure that duplicate subject names are allowed, by setting
+``unique_subject=no`` in
+``etc/kayobe/kolla/octavia-certificates/client_ca/index.txt.attr``. This should
+already be set.
 
 Checking certificate expiry
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -319,83 +299,127 @@ given number of days:
 
    kayobe# kayobe kolla ansible run "octavia-certificates <number-of-days>
 
-Rotating client.cert-and-key.pem
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Rotating client certificates
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This has a life time of 1 year. 
+Octavia client certificates expire after a year, and should be rotated before
+they expire.
 
-1) Follow the steps to restore octavia-certificates so you can reuse the client CA. 
-2) Make sure your config allows you to regenerate a certificate with the same common name
+.. note::
 
-   .. code-block:: console
-      :caption: $KOLLA_CONFIG_PATH/octavia-certificates/client_ca/index.txt.attr 
+   Only the client certificate needs to be rotated annually. The server CA and
+   client CA both have 10 year expiries, and should not be rotated before this
+   since it would break the trust chain.
 
-      unique_subject = no
+Decrypt all certificate files:
 
-3) Remove the old files relating to the client certificate:
+.. code-block:: console
 
-   .. code-block:: console
-      
-      kayobe# rm $KOLLA_CONFIG_PATH/octavia-certificates/client_ca/{client.cert-and-key.pem,client.csr.pem,client.cert.pem}
+   git grep -l VAULT etc/kayobe/kolla/octavia-certificates | xargs ansible-vault decrypt --vault-password-file
 
-4) Regenerate the certificates
+Remove the existing client certificate and keys to ensure they are regenerated:
 
-   .. code-block:: console
-      
-      kayobe# kayobe kolla ansible run octavia-certificates
+.. code-block:: console
 
-5) Backup your octavia-certificates directory (see previous section).
+   rm etc/kayobe/kolla/octavia-certificates/client_ca/client.*
 
-6) Copy your new certificate to the correct location:
+Generate new certificates:
 
-   .. code-block:: console
+.. code-block:: console
 
-      cd ${KAYOBE_CONFIG_PATH}/environments/$KAYOBE_ENVIRONMENT/kolla/config/octavia
-      kayobe# cp  $KOLLA_CONFIG_PATH/octavia-certificates/client_ca/client_ca.cert.pem .
-      kayobe# cp  $KOLLA_CONFIG_PATH/octavia-certificates/client_ca/client.cert-and-key.pem .
-      kayobe# ansible-vault encrypt client.cert-and-key.pem --vault-password-file ~/vault 
-      Encryption successful
+   kayobe kolla ansible run octavia-certificates -ke node_custom_config=$KAYOBE_CONFIG_PATH/kolla/config -ke node_config=$KAYOBE_CONFIG_PATH/kolla
 
-7) Reconfigure octavia
+This is likely to modify several files, and possibly add some new ones. Add the
+new files:
 
-   .. code-block:: console
-      
-      kayobe# kayobe overcloud service reconfigure -kt octavia
+.. code-block:: console
 
-8) Run tempest with the `octavia` test list to check it is working.
+   git add etc/kayobe/kolla/octavia-certificates/client_ca/
 
-9) Commit and push any changes.
+Encrypt the changed files that we are interested in:
+
+.. code-block:: console
+
+   git grep -L VAULT etc/kayobe/kolla/octavia-certificates/client_ca | xargs ansible-vault encrypt --vault-password-file
+   git grep -L VAULT etc/kayobe/kolla/config/octavia/*.pem | xargs ansible-vault encrypt --vault-password-file
+
+Add and commit:
+
+.. code-block:: console
+
+   git add etc/kayobe/kolla/octavia-certificates/client_ca/
+   git add etc/kayobe/kolla/config/octavia/client.cert-and-key.pem etc/kayobe/kolla/config/octavia/client_ca.cert.pem
+   git commit -m "Octavia certs: rotate client certs"
+
+Discard other unnecessary changes:
+
+.. code-block:: console
+
+   git status # check for anything unexpected!
+   git checkout etc/kayobe/kolla/octavia-certificates/ etc/kayobe/kolla/config/octavia
+
+Deploy the new client certs:
+
+.. code-block:: console
+
+   kayobe overcloud service deploy --kolla-tags octavia
 
 Rotating the CAs
 ~~~~~~~~~~~~~~~~
 
-The CAs have a 10 year lifetime. Simply delete the relevant directory under
-``$KOLLA_CONFIG_PATH/octavia-certificates/`` and regenerate it with:
+The CAs have a 10 year lifetime. When rotating these, you will also need to
+generate new certificates.
+
+Decrypt all certificate files:
+
+.. code-block:: console
+
+   git grep -l VAULT etc/kayobe/kolla/octavia-certificates | xargs ansible-vault decrypt --vault-password-file
+
+Remove the existing CAs where appropriate:
+
+.. code-block:: console
+
+   rm -rf etc/kayobe/kolla/octavia-certificates/client_ca/
+   rm -rf etc/kayobe/kolla/octavia-certificates/server_ca/
+
+Generate new CAs and certificates:
 
    .. code-block:: console
-      
-      kayobe# kayobe kolla ansible run octavia-certificates
 
-Copy the relevant certificates into your kayobe-config.
+      kayobe kolla ansible run octavia-certificates -ke node_custom_config=$KAYOBE_CONFIG_PATH/kolla/config -ke node_config=$KAYOBE_CONFIG_PATH/kolla
 
-.. code-block:: console
-
-   kayobe# cd ${KAYOBE_CONFIG_PATH}/environments/$KAYOBE_ENVIRONMENT/kolla/config/octavia
-   kayobe# cp $KOLLA_CONFIG_PATH/octavia-certificates/client_ca/client_ca.cert.pem .
-   kayobe# cp $KOLLA_CONFIG_PATH/octavia-certificates/client_ca/client.cert-and-key.pem .
-   kayobe# cp $KOLLA_CONFIG_PATH/octavia-certificates/client_ca/server_ca.cert.pem .
-   kayobe# cp $KOLLA_CONFIG_PATH/octavia-certificates/client_ca/server_ca.key.pem .
-
-Encrypt any files containing the keys.
+Encrypt the changed files that we are interested in:
 
 .. code-block:: console
 
-   kayobe# ansible-vault encrypt client.cert-and-key.pem --vault-password-file ~/vault 
-   Encryption successful
-   kayobe# ansible-vault encrypt server_ca.key.pem --vault-password-file ~/vault 
-   Encryption successful
+   git grep -L VAULT etc/kayobe/kolla/octavia-certificates/client_ca | xargs ansible-vault encrypt --vault-password-file
+   git grep -L VAULT etc/kayobe/kolla/config/octavia/*.pem | xargs ansible-vault encrypt --vault-password-file
 
-Follow any instructions in the `upstream docs <https://docs.openstack.org/octavia/latest/admin/guides/operator-maintenance.html>`_.
+Add and commit:
+
+.. code-block:: console
+
+   git add etc/kayobe/kolla/octavia-certificates/client_ca/
+   git add etc/kayobe/kolla/octavia-certificates/server_ca/
+   git add etc/kayobe/kolla/config/octavia/client.cert-and-key.pem etc/kayobe/kolla/config/octavia/client_ca.cert.pem
+   git commit -m "Octavia certs: rotate CAs"
+
+Discard other unnecessary changes:
+
+.. code-block:: console
+
+   git status # check for anything unexpected!
+   git checkout etc/kayobe/kolla/octavia-certificates/ etc/kayobe/kolla/config/octavia
+
+Deploy the new client certs:
+
+.. code-block:: console
+
+   kayobe overcloud service deploy --kolla-tags octavia
+
+Follow any instructions in the `upstream docs
+<https://docs.openstack.org/octavia/latest/admin/guides/operator-maintenance.html>`_.
 
 Backup of the OpenStack Control Plane
 =====================================
