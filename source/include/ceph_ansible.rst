@@ -67,7 +67,7 @@ Apply LVM configuration using Kayobe for the replaced device (here on ``storage-
 
 .. code-block:: console
 
-   kayobe$ kayobe overcloud host configure -t lvm -kt none -l storage-0 -kl storage-0
+   kayobe$ kayobe overcloud host configure -t lvm -l storage-0
 
 Before running Ceph-Ansible, also remove vestigial state directory
 from ``/var/lib/ceph/osd`` for the purged OSD
