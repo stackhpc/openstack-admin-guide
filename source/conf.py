@@ -18,7 +18,7 @@
 # -- Project information -----------------------------------------------------
 
 project = 'OpenStack Administration Guide'
-copyright = '2020-2023, StackHPC Ltd'
+copyright = '2020-2024, StackHPC Ltd'
 author = 'StackHPC Ltd'
 
 
