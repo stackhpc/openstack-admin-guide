@@ -37,9 +37,7 @@ Making a Kayobe Checkout
 A Kayobe checkout is made on the Ansible control host.
 
 A Kayobe development environment can easily be set up using a script called
-``beokay``, for example. This command will need the ``KAYOBE_VAULT_PASSWORD``
-environment variable to be set when secrets are encrypted with Ansible Vault.
-See the next section for details.
+``beokay``, for example.
 
 .. code-block:: console
    :substitutions:
@@ -51,7 +49,8 @@ See the next section for details.
            --kayobe-repo |kayobe_source_url| \
            --kayobe-branch |kayobe_source_version| \
            --kayobe-config-repo |kayobe_config_source_url| \
-           --kayobe-config-branch |kayobe_config_source_version|
+           --kayobe-config-branch |kayobe_config_source_version| \
+           --vault-password-file |vault_password_file_path|
 
 After making the checkout, source the virtualenv and Kayobe config environment variables:
 
@@ -92,6 +91,13 @@ a command such as:
    :substitutions:
 
    kayobe# export KAYOBE_VAULT_PASSWORD=$(cat |vault_password_file_path|)
+
+Or using ``env-vars.sh`` created from ``beokay`` if you used it.
+
+.. code-block:: console
+   :substitutions:
+
+   kayobe# source |base_path|/env-vars.sh
 
 Verifying Changes Before Applying
 ---------------------------------
@@ -182,7 +188,6 @@ To use a specific environment with Kayobe, make sure to source its environment
 variables:
 
 .. code-block:: console
-   :substitutions:
 
    kayobe# source src/kayobe-config/kayobe-env --environment <env-name>
 
