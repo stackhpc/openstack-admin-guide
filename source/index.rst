@@ -18,18 +18,10 @@ Contents
    :maxdepth: 2
 
    introduction
-   working_with_openstack
+   overview_of_system
    working_with_kayobe
+   access_to_services
    physical_network
-   hardware_inventory_management
-   ceph_storage
-   managing_users_and_projects
-   operations_and_monitoring
-   wazuh
-   customising_deployment
-   gpus_in_openstack
-   baremetal_management
-   rally_and_tempest
 
 Indices and search
 ==================
