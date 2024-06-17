@@ -95,8 +95,6 @@ Kolla-Ansible and can be extracted from the encrypted passwords file
 
    kayobe# ansible-vault view ${KAYOBE_CONFIG_PATH}/kolla/passwords.yml --vault-password-file |vault_password_file_path| | grep ^grafana_admin_password
 
-.. _prometheus-alertmanager:
-
 Access to Prometheus Alertmanager
 ---------------------------------
 
