@@ -21,6 +21,7 @@ Contents
    overview_of_system
    working_with_kayobe
    access_to_services
+   baremetal_management
    physical_network
 
 Indices and search
