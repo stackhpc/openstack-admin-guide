@@ -76,7 +76,7 @@ We can then provision and configure them:
    :substitutions:
 
    kayobe# kayobe overcloud provision --limit |hypervisor_hostname|
-   kayobe# kayobe overcloud host configure --limit |hypervisor_hostname| --kolla-limit |hypervisor_hostname|
+   kayobe# kayobe overcloud host configure --limit |hypervisor_hostname|
    kayobe# kayobe overcloud service deploy --limit |hypervisor_hostname| --kolla-limit |hypervisor_hostname|
 
 Replacing a Failing Hypervisor
