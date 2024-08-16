@@ -1,3 +1,4 @@
 PyYAML
 Sphinx
+sphinx-prompt
 Sphinx-Substitution-Extensions[prompt]
