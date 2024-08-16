@@ -458,6 +458,76 @@ Booting the VM:
   $ openstack server add security group nvidia-dls-1 nvidia-dls
 
 
+Manual VM driver and licence configuration
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+vGPU client VMs need to be configured with Nvidia drivers to run GPU workloads.
+The host drivers should already be applied to the hypervisor. 
+
+GCP hosts compatible client drivers `here
+<https://cloud.google.com/compute/docs/gpus/grid-drivers-table>`__.
+
+Find the correct version (when in doubt, use the same version as the host) and
+download it to the VM. The exact dependencies will depend on the base image you
+are using but at a minimum, you will need GCC installed.
+
+Ubuntu Jammy example:
+
+.. code-block:: bash
+
+    sudo apt update
+    sudo apt install -y make gcc wget
+    wget https://storage.googleapis.com/nvidia-drivers-us-public/GRID/vGPU17.1/NVIDIA-Linux-x86_64-550.54.15-grid.run
+    sudo sh NVIDIA-Linux-x86_64-550.54.15-grid.run
+
+Check the ``nvidia-smi`` client is available:
+
+.. code-block:: bash
+
+    nvidia-smi
+
+Generate a token from the licence server, and copy the token file to the client
+VM.
+
+On the client, create an Nvidia grid config file from the template:
+
+.. code-block:: bash
+
+    sudo cp /etc/nvidia/gridd.conf.template  /etc/nvidia/gridd.conf
+
+Edit it to set ``FeatureType=1`` and leave the rest of the settings as default.
+
+Copy the client configuration token into the ``/etc/nvidia/ClientConfigToken``
+directory.
+
+Ensure the correct permissions are set:
+
+.. code-block:: bash
+
+    sudo chmod 744 /etc/nvidia/ClientConfigToken/client_configuration_token_<datetime>.tok
+
+Restart the ``nvidia-gridd`` service:
+
+.. code-block:: bash
+
+    sudo systemctl restart nvidia-gridd
+
+Check that the token has been recognised:
+
+.. code-block:: bash
+
+    nvidia-smi -q | grep 'License Status'
+
+If not, an error should appear in the journal:
+
+.. code-block:: bash
+
+    sudo journalctl -xeu nvidia-gridd
+
+A successfully licenced VM can be snapshotted to create an image in Glance that
+includes the drivers and licencing token. Alternatively, an image can be
+created using Diskimage Builder.
+
 Disk image builder recipe to automatically license VGPU on boot
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -535,6 +605,66 @@ The client token can be downloaded from the web interface of the licensing porta
 when copying the contents as it can contain invisible characters. It is best to copy the file directly
 into your openstack-config repository and vault encrypt it. The ``file`` lookup plugin can be used to decrypt
 the file (as shown in the example above).
+
+Testing vGPU VMs
+^^^^^^^^^^^^^^^^
+
+vGPU VMs can be validated using the following test workload. The test should
+succeed if the VM is correctly licenced and drivers are correctly installed for
+both the host and client VM.
+
+Install ``cuda-toolkit`` using the instructions `here
+<https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html>`__.
+
+Ubuntu Jammy example:
+
+.. code-block:: bash
+
+    wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb
+    sudo dpkg -i cuda-keyring_1.1-1_all.deb
+    sudo apt update -y 
+    sudo apt install -y cuda-toolkit make
+
+The VM may require a reboot at this point.
+
+Clone the ``cuda-samples`` repo:
+
+.. code-block:: bash
+
+    git clone https://github.com/NVIDIA/cuda-samples.git
+
+Build and run a test workload:
+
+.. code-block:: bash
+
+    cd cuda-samples/Samples/6_Performance/transpose
+    make
+    ./transpose
+
+Example output:
+
+.. code-block::
+
+    Transpose Starting...
+
+    GPU Device 0: "Ampere" with compute capability 8.0
+
+    > Device 0: "GRID A100D-1-10C MIG 1g.10gb"
+    > SM Capability 8.0 detected:
+    > [GRID A100D-1-10C MIG 1g.10gb] has 14 MP(s) x 64 (Cores/MP) = 896 (Cores)
+    > Compute performance scaling factor = 1.00
+
+    Matrix size: 1024x1024 (64x64 tiles), tile size: 16x16, block size: 16x16
+
+    transpose simple copy       , Throughput = 159.1779 GB/s, Time = 0.04908 ms, Size = 1048576 fp32 elements, NumDevsUsed = 1, Workgroup = 256
+    transpose shared memory copy, Throughput = 152.1922 GB/s, Time = 0.05133 ms, Size = 1048576 fp32 elements, NumDevsUsed = 1, Workgroup = 256
+    transpose naive             , Throughput = 117.2670 GB/s, Time = 0.06662 ms, Size = 1048576 fp32 elements, NumDevsUsed = 1, Workgroup = 256
+    transpose coalesced         , Throughput = 135.0813 GB/s, Time = 0.05784 ms, Size = 1048576 fp32 elements, NumDevsUsed = 1, Workgroup = 256
+    transpose optimized         , Throughput = 145.4326 GB/s, Time = 0.05372 ms, Size = 1048576 fp32 elements, NumDevsUsed = 1, Workgroup = 256
+    transpose coarse-grained    , Throughput = 145.2941 GB/s, Time = 0.05377 ms, Size = 1048576 fp32 elements, NumDevsUsed = 1, Workgroup = 256
+    transpose fine-grained      , Throughput = 150.5703 GB/s, Time = 0.05189 ms, Size = 1048576 fp32 elements, NumDevsUsed = 1, Workgroup = 256
+    transpose diagonal          , Throughput = 117.6831 GB/s, Time = 0.06639 ms, Size = 1048576 fp32 elements, NumDevsUsed = 1, Workgroup = 256
+    Test passed
 
 Changing VGPU device types
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
