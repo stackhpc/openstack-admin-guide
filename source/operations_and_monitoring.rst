@@ -173,8 +173,10 @@ reach the |project_name| OpenStack APIs:
 
    openstack# openssl s_client -connect |public_endpoint_fqdn|:443 2> /dev/null | openssl x509 -noout -dates
 
-*NOTE*: Prometheus Blackbox monitoring can check certificates automatically
-and alert when expiry is approaching.
+.. note::
+
+   Prometheus Blackbox monitoring can check certificates automatically
+   and alert when expiry is approaching.
 
 To update an existing certificate, for example when it has reached expiration,
 change the value of ``secrets_kolla_external_tls_cert``, in the same order as
@@ -183,6 +185,14 @@ above.  Run the following command:
 .. code-block:: console
 
    kayobe# kayobe overcloud service reconfigure --kolla-tags haproxy
+
+.. note::
+
+   Test the installation of an updated certificate by running
+   the reconfigure command with a ``--kolla-limit`` of one of the hosts
+   where HAProxy is deployed.  This will detect if the certificate is
+   not validated by HAProxy, without stopping HAProxy services on all
+   hosts.
 
 .. _taking-a-hypervisor-out-of-service:
 
