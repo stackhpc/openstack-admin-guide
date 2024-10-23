@@ -1,5 +1,4 @@
-name: Compile Sphinx Documentation
-
+name: Build OpenStack Admin Guide As PDF
 on:
   push:
     branches:
