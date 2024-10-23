@@ -1,0 +1,29 @@
+name: Compile Sphinx Documentation
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/sphinx-doc/sphinx-latexpdf:8.0.2
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Install Python dependencies
+        run: pip3 install -r requirements.txt
+
+      - name: Compile Sphinx documentation
+        run: sphinx-build -M latexpdf source/ _build
+
+      - name: Upload PDF Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: openstack-admin-guide.pdf
+          path: _build/latex/openstackadministrationguide.pdf
