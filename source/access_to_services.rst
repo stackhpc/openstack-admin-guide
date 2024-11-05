@@ -124,7 +124,11 @@ Kolla-Ansible and can be extracted from the encrypted passwords file
    ``opendistro_admin_password`` which can be found within
    ``etc/kayobe/inventory/group_vars/wazuh-manager/wazuh-secrets.yml``.
 
-   .. note:: Use ``ansible-vault`` to view Wazuh secrets:
-      :substitutions:
+   .. note::
 
-   ``ansible-vault view --vault-password-file |vault_password_file_path| $KAYOBE_CONFIG_PATH/inventory/group_vars/wazuh-manager/wazuh-secrets.yml``
+      Use ``ansible-vault`` to view Wazuh secrets:
+
+      .. code-block:: console
+         :substitutions:
+
+         kayobe# ansible-vault view --vault-password-file |vault_password_file_path| $KAYOBE_CONFIG_PATH/inventory/group_vars/wazuh-manager/wazuh-secrets.yml
