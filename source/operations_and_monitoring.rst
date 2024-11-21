@@ -269,6 +269,158 @@ The images stored locally in the seed host can be seen using ``docker image ls``
 Old and redundant images can be identified from their names and tags, and
 removed using ``docker image rm``.
 
+Octavia
++++++++
+
+Octavia uses mutual TLS to secure communication between the amphorae and
+Octavia services. It uses a private CA to sign both client and server
+certificates. We use the kolla-ansible built-in support for generating these
+certificates.
+
+We ensure that duplicate subject names are allowed, by setting
+``unique_subject=no`` in
+``etc/kayobe/kolla/octavia-certificates/client_ca/index.txt.attr``. This should
+already be set.
+
+Checking certificate expiry
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: console
+
+   kayobe# ansible-vault decrypt client.cert-and-key.pem --vault-password-file  ~/vault
+   Decryption successful
+   kayobe# openssl x509 -enddate -noout -in client.cert-and-key.pem 
+   notAfter=Aug 12 10:45:35 2022 GMT
+
+There is also support in Kolla-Ansible to check if certs will expire within a
+given number of days:
+
+.. code-block:: console
+
+   kayobe# kayobe kolla ansible run "octavia-certificates <number-of-days>
+
+Rotating client certificates
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Octavia client certificates expire after a year, and should be rotated before
+they expire.
+
+.. note::
+
+   Only the client certificate needs to be rotated annually. The server CA and
+   client CA both have 10 year expiries, and should not be rotated before this
+   since it would break the trust chain.
+
+Decrypt all certificate files:
+
+.. code-block:: console
+
+   git grep -l VAULT etc/kayobe/kolla/octavia-certificates | xargs ansible-vault decrypt --vault-password-file
+
+Remove the existing client certificate and keys to ensure they are regenerated:
+
+.. code-block:: console
+
+   rm etc/kayobe/kolla/octavia-certificates/client_ca/client.*
+
+Generate new certificates:
+
+.. code-block:: console
+
+   kayobe kolla ansible run octavia-certificates -ke node_custom_config=$KAYOBE_CONFIG_PATH/kolla/config -ke node_config=$KAYOBE_CONFIG_PATH/kolla
+
+This is likely to modify several files, and possibly add some new ones. Add the
+new files:
+
+.. code-block:: console
+
+   git add etc/kayobe/kolla/octavia-certificates/client_ca/
+
+Encrypt the changed files that we are interested in:
+
+.. code-block:: console
+
+   git grep -L VAULT etc/kayobe/kolla/octavia-certificates/client_ca | xargs ansible-vault encrypt --vault-password-file
+   git grep -L VAULT etc/kayobe/kolla/config/octavia/*.pem | xargs ansible-vault encrypt --vault-password-file
+
+Add and commit:
+
+.. code-block:: console
+
+   git add etc/kayobe/kolla/octavia-certificates/client_ca/
+   git add etc/kayobe/kolla/config/octavia/client.cert-and-key.pem etc/kayobe/kolla/config/octavia/client_ca.cert.pem
+   git commit -m "Octavia certs: rotate client certs"
+
+Discard other unnecessary changes:
+
+.. code-block:: console
+
+   git status # check for anything unexpected!
+   git checkout etc/kayobe/kolla/octavia-certificates/ etc/kayobe/kolla/config/octavia
+
+Deploy the new client certs:
+
+.. code-block:: console
+
+   kayobe overcloud service deploy --kolla-tags octavia
+
+Rotating the CAs
+~~~~~~~~~~~~~~~~
+
+The CAs have a 10 year lifetime. When rotating these, you will also need to
+generate new certificates.
+
+Decrypt all certificate files:
+
+.. code-block:: console
+
+   git grep -l VAULT etc/kayobe/kolla/octavia-certificates | xargs ansible-vault decrypt --vault-password-file
+
+Remove the existing CAs where appropriate:
+
+.. code-block:: console
+
+   rm -rf etc/kayobe/kolla/octavia-certificates/client_ca/
+   rm -rf etc/kayobe/kolla/octavia-certificates/server_ca/
+
+Generate new CAs and certificates:
+
+.. code-block:: console
+
+   kayobe kolla ansible run octavia-certificates -ke node_custom_config=$KAYOBE_CONFIG_PATH/kolla/config -ke node_config=$KAYOBE_CONFIG_PATH/kolla
+
+Encrypt the changed files that we are interested in:
+
+.. code-block:: console
+
+   git grep -L VAULT etc/kayobe/kolla/octavia-certificates/client_ca | xargs ansible-vault encrypt --vault-password-file
+   git grep -L VAULT etc/kayobe/kolla/config/octavia/*.pem | xargs ansible-vault encrypt --vault-password-file
+
+Add and commit:
+
+.. code-block:: console
+
+   git add etc/kayobe/kolla/octavia-certificates/client_ca/
+   git add etc/kayobe/kolla/octavia-certificates/server_ca/
+   git add etc/kayobe/kolla/config/octavia/client.cert-and-key.pem etc/kayobe/kolla/config/octavia/client_ca.cert.pem
+   git commit -m "Octavia certs: rotate CAs"
+
+Discard other unnecessary changes:
+
+.. code-block:: console
+
+   git status # check for anything unexpected!
+   git checkout etc/kayobe/kolla/octavia-certificates/ etc/kayobe/kolla/config/octavia
+
+Deploy the new client certs:
+
+.. code-block:: console
+
+   kayobe overcloud service deploy --kolla-tags octavia
+
+Follow any instructions in the `upstream docs
+<https://docs.openstack.org/octavia/latest/admin/guides/operator-maintenance.html>`_.
+
 Backup of the OpenStack Control Plane
 =====================================
 
