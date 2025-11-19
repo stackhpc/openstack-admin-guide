@@ -31,15 +31,15 @@ and control plane hosts through the provisioning network
 
 |control_host_access|
 
+.. _Making a Kayobe Checkout:
+
 Making a Kayobe Checkout
 ------------------------
 
 A Kayobe checkout is made on the Ansible control host.
 
 A Kayobe development environment can easily be set up using a script called
-``beokay``, for example. This command will need the ``KAYOBE_VAULT_PASSWORD``
-environment variable to be set when secrets are encrypted with Ansible Vault.
-See the next section for details.
+``beokay``, for example.
 
 .. code-block:: console
    :substitutions:
@@ -51,26 +51,22 @@ See the next section for details.
            --kayobe-repo |kayobe_source_url| \
            --kayobe-branch |kayobe_source_version| \
            --kayobe-config-repo |kayobe_config_source_url| \
-           --kayobe-config-branch |kayobe_config_source_version|
+           --kayobe-config-branch |kayobe_config_source_version| \
+           --kayobe-config-env-name <kayobe-environment-name> \
+           --vault-password-file |vault_password_file_path|
 
-After making the checkout, source the virtualenv and Kayobe config environment variables:
+If the system does not use Kayobe environment, you can omit ``--kayobe-config-env-name``.
+See the section :ref:`Kayobe Environments` for more details.
 
-.. code-block:: console
-   :substitutions:
-
-   kayobe# cd |base_path|
-   kayobe# source venvs/kayobe/bin/activate
-   kayobe# source src/kayobe-config/kayobe-env
-
-If you are using a Kayobe environment, you will instead need to specify which
-environment to source. See the section :ref:`Kayobe Environments` for more details.
+After making the checkout, source ``env-vars.sh``.
 
 .. code-block:: console
    :substitutions:
 
-   kayobe# source src/kayobe-config/kayobe-env --environment <env-name>
+   cd |base_path|
+   source env-vars.sh
 
-Set up any dependencies needed on the control host:
+Then, set up any dependencies needed on the control host:
 
 .. code-block:: console
 
@@ -85,13 +81,13 @@ such as IPMI credentials, Ceph account keys and OpenStack service credentials.
 The vault of deployment secrets is protected by a password, which
 conventionally is stored in a (mode 0400) file in the user home directory.
 
-An easy way to manage the vault password is to update ``.bash_profile`` to add
-a command such as:
+An easy way to manage the vault password is using ``env-vars.sh`` created from ``beokay``.
+See the section :ref:`Making a Kayobe Checkout` for details.
 
 .. code-block:: console
    :substitutions:
 
-   kayobe# export KAYOBE_VAULT_PASSWORD=$(cat |vault_password_file_path|)
+   kayobe# source |base_path|/env-vars.sh
 
 Verifying Changes Before Applying
 ---------------------------------
@@ -182,7 +178,6 @@ To use a specific environment with Kayobe, make sure to source its environment
 variables:
 
 .. code-block:: console
-   :substitutions:
 
    kayobe# source src/kayobe-config/kayobe-env --environment <env-name>
 
