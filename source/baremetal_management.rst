@@ -190,65 +190,8 @@ The switch configuration that NGS will apply to these ports is detailed in :ref:
 Ironic node discovery
 ---------------------
 
-Discovery is a process used to automatically enrol new nodes in Ironic.
-It works by PXE booting the nodes into the Ironic Python Agent (IPA) ramdisk.
-This ramdisk will collect hardware and networking configuration from the node in a process known as introspection.
-This data is used to populate the baremetal node object in Ironic.
-The series of steps you need to take to enrol a new node is as follows:
+Please refer to `Baremetal Compute Node Management <https://docs.openstack.org/kayobe/latest/administration/bare-metal.html>`__.
 
-- Configure credentials on the BMC. These are needed for Ironic to be able to perform power control actions.
-
-- Controllers should have network connectivity with the target BMC.
-
-- (If kayobe manages physical network) Add any additional switch configuration to kayobe config.
-  The minimal switch configuration that kayobe needs to know about is described in :ref:`tor-switch-configuration`.
-
-- Apply any :ref:`static switch configration <static-switch-config>`. This performs the initial
-  setup of the switchports that is needed before Ironic can take over. The static configuration
-  will not be modified by Ironic, so it should be safe to reapply at any point. See :ref:`ngs-commands`
-  for details about the switch configuation that Networking Generic Switch will apply.
-
-- (If kayobe manages physical network) Put the node onto the provisioning network by using the
-  ``--enable-discovery`` flag and either ``--interface-description-limit`` or ``--interface-limit``
-  (do not run this command without one of these limits). See :ref:`static-switch-config`.
-
-    * This is only necessary to initially discover the node. Once the node is in registered in Ironic,
-      it will take over control of the the VLAN membership. See :ref:`dynamic-switch-configuration`.
-
-    * This provides ethernet connectivity with the controllers over the `workload provisioning` network
-
-- (If kayobe doesn't manage physical network) Put the node onto the provisioning network.
-
-.. TODO: link to the relevant file in kayobe config
-
-- Add node to the kayobe inventory.
-
-.. TODO: Fill in details about necessary BIOS & RAID config
-
-- Apply any necesary BIOS & RAID configuration.
-
-.. TODO: Fill in details about how to trigger a PXE boot
-
-- PXE boot the node.
-
-- If the discovery process is successful, the node will appear in Ironic and will get populated with the necessary information from the hardware inspection process.
-
-.. TODO: Link to the Kayobe inventory in the repo
-
-- Add node to the Kayobe inventory in the ``baremetal-compute`` group.
-
-- The node will begin in the ``enroll`` state, and must be moved first to ``manageable``, then ``available`` before it can be used.
-
-  If Ironic automated cleaning is enabled, the node must complete a cleaning process before it can reach the available state.
-
-  * Use Kayobe to attempt to move the node to the ``available`` state.
-
-    .. code-block:: console
-
-       source etc/kolla/public-openrc.sh
-       kayobe baremetal compute provide --limit <node>
-
-- Once the node is in the ``available`` state, Nova will make the node available for scheduling. This happens periodically, and typically takes around a minute.
 
 .. _tor-switch-configuration:
 
