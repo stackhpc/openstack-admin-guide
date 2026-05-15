@@ -15,6 +15,9 @@ Kayobe is open source and can be downloaded from the Git repository
 Kayobe's online documentation is available here:
 https://docs.openstack.org/kayobe/latest/
 
+Documentation of stackhpc-kayobe-config can be found here:
+https://stackhpc-kayobe-config.readthedocs.io/en/stackhpc-2025.1/operations/index.html
+
 The infrastructure-as-code configuration state for the |project_name| OpenStack
 is here: |kayobe_config_source_url| (use the |kayobe_config_source_version|
 branch).
